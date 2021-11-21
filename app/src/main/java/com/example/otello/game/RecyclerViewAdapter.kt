@@ -1,17 +1,23 @@
 package com.example.otello.game
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.otello.Posicoes
 import com.example.otello.R
 
 
 class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
     private var mData: Array<IntArray>
+    private var mMoves: ArrayList<Posicoes>? = null
     private var mBoardDimensions : Int = -1
     private var mInflater: LayoutInflater? = null
     private var mClickListener: ItemClickListener? = null
@@ -34,7 +40,16 @@ class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         val linha = position.div(mBoardDimensions)
         val coluna = position.rem(mBoardDimensions)
 
-        holder.myTextView.text = if(mData[linha][coluna] != 0) mData[linha][coluna].toString() else ""
+        //Coloca id do jogador no board
+        holder.playerId.text = if(mData[linha][coluna] != 0) mData[linha][coluna].toString() else ""
+        //Altera as cores das posições onde o jogador atual pode jogar.
+        if(mMoves != null && mMoves?.isNotEmpty()!!) {
+            for (pos in mMoves!!) {
+                if (pos.linha == linha && pos.coluna == coluna) {
+                    holder.squareLayout.background = ContextCompat.getDrawable(holder.itemView.context, R.color.colorPossibleMove)
+                }
+            }
+        }
     }
 
     // total number of cells
@@ -42,15 +57,19 @@ class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         return mData.size
     }
 
-
     fun setDataArray(dataArray : Array<IntArray>){
         mData = dataArray
+    }
+
+    fun setPlayerMoves(array: ArrayList<Posicoes>){
+        mMoves = array
     }
 
     // stores and recycles views as they are scrolled off screen
     inner class ViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView),
         View.OnClickListener {
-        var myTextView: TextView = itemView.findViewById(R.id.square_description)
+        val playerId = itemView.findViewById<TextView>(R.id.square_description)
+        val squareLayout = itemView.findViewById<LinearLayout>(R.id.square_layout)
 
         override fun onClick(view: View) {
             if (mClickListener != null) {

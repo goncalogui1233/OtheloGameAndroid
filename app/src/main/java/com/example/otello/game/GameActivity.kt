@@ -6,6 +6,7 @@ import android.view.View
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.otello.Posicoes
 import com.example.otello.R
 import kotlinx.android.synthetic.main.activity_game.*
 import kotlin.random.Random
@@ -15,6 +16,7 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
     lateinit var adapter : RecyclerViewAdapter
     lateinit var v : GameViewModel
     val boardD = 8
+    var shouldSeeMoves : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +26,7 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         v.initBoard(boardD * boardD, boardD)
         v.board.observe(this, observeBoard)
         v.playerTurn.observe(this, observePlayerTurn)
+        v.playPositions.observe(this, observePlayerMoves)
 
         //Coloca o número de jogadores existentes
         //v.numJogadores.value = intent.getIntExtra("num_jogadores", 0)
@@ -42,6 +45,16 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         passTurnBtn.setOnClickListener {
             v.changePlayer()
         }
+
+        showMovesBtn.setOnClickListener {
+            shouldSeeMoves = !shouldSeeMoves
+            if(shouldSeeMoves)
+                adapter.setPlayerMoves(v.playPositions.value!!)
+            else
+                adapter.setPlayerMoves(arrayListOf())
+
+            adapter.notifyDataSetChanged()
+        }
     }
 
     private fun setRecyclerView(){
@@ -51,7 +64,7 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
 
     private fun sortearJogador(){
         val turn = Random.nextInt(0, v.numJogadores.value!!) + 1
-        v.playerTurn.postValue(turn)
+        v.changePlayer(turn)
     }
 
     private val observeBoard = Observer<Array<IntArray>> {
@@ -63,8 +76,9 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         playerTurnInfo.text = "Player " + v.playerTurn.value
     }
 
-    private val observePlayerMoves = Observer<ArrayList<Int>> {
-
+    private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
+        if(shouldSeeMoves)
+            adapter.setPlayerMoves(it)
     }
 
     override fun onItemClick(view: View?, line: Int, column: Int) {

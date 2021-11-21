@@ -76,7 +76,7 @@ class GameViewModel : ViewModel(){
 
         }
 
-        //Check Top Left Diagonal -> TODO DIAGONAL!!!
+        //Check Top Left Diagonal
         lin = line
         col = column
         while(lin >= 1 && col >= 1){
@@ -154,7 +154,7 @@ class GameViewModel : ViewModel(){
 
         }
 
-        //Check Bottom Right Diagonal -> TODO DIAGONAL!!!
+        //Check Bottom Right Diagonal
         lin = line
         col = column
         while(lin <= boardDimensions.value!! - 1 && col <= boardDimensions.value!! -1){
@@ -218,15 +218,28 @@ class GameViewModel : ViewModel(){
         return copyBoard
     }
 
+
+    /**
+     * Esta função percorre o board para contar o numero de peças de cada jogador
+     */
+    fun checkPieces(){
+        //TODO -> Ver o numero de peças...
+    }
+
     /**
      * Esta função altera o jogador atual
      */
-    fun changePlayer(){
-        if(playerTurn.value == numJogadores.value){
-            playerTurn.value = 1
+    fun changePlayer(player : Int = -1){
+
+        if(player == -1) {
+            if (playerTurn.value == numJogadores.value) {
+                playerTurn.value = 1
+            } else {
+                playerTurn.value = playerTurn.value?.plus(1)
+            }
         }
         else {
-            playerTurn.value = playerTurn.value?.plus(1)
+            playerTurn.value = player
         }
 
         getPossiblePositions()
