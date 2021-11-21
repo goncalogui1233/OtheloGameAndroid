@@ -22,15 +22,14 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
 
+        //Coloca o número de jogadores existentes
+        //v.numJogadores.value = intent.getIntExtra("num_jogadores", 0)
+
         v = ViewModelProvider(this).get(GameViewModel::class.java)
-        v.initBoard(boardD * boardD, boardD)
+        v.initBoard(boardD * boardD, boardD, 2)
         v.board.observe(this, observeBoard)
         v.playerTurn.observe(this, observePlayerTurn)
         v.playPositions.observe(this, observePlayerMoves)
-
-        //Coloca o número de jogadores existentes
-        //v.numJogadores.value = intent.getIntExtra("num_jogadores", 0)
-        v.numJogadores.value = 2
 
         //Setting the Adapter
         adapter = RecyclerViewAdapter(this, boardD)
@@ -77,8 +76,10 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
     }
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
-        if(shouldSeeMoves)
+        if(shouldSeeMoves) {
             adapter.setPlayerMoves(it)
+            adapter.notifyDataSetChanged()
+        }
     }
 
     override fun onItemClick(view: View?, line: Int, column: Int) {

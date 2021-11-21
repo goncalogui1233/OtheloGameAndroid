@@ -8,5 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="colorPossibleMove">#ffa700</color>
+    <color name="colorPossibleMove">#FFBF00</color>
+    <color name="colorPlayer2Circle">#505050</color>
+    <color name="colorPlayer3Circle">#2196F3</color>
 </resources>

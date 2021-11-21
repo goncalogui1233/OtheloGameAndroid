@@ -12,16 +12,19 @@ class GameViewModel : ViewModel(){
     val boardDimensions = MutableLiveData<Int>()
     val playPositions = MutableLiveData<ArrayList<Posicoes>>()
 
-    fun initBoard(boardSize : Int, boardDimen : Int) {
+    fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
         board.value = Array(boardSize) { IntArray(boardSize)}
         boardDimensions.value = boardDimen
+        numJogadores.value = numPlayers
 
         //Organize when PlayerNumber = 2
-        board.value!![3][3] = 1
-        board.value!![3][4] = 2
-        board.value!![4][3] = 2
-        board.value!![4][4] = 1
+        if(numJogadores.value == 2) {
+            board.value!![3][3] = 1
+            board.value!![3][4] = 2
+            board.value!![4][3] = 2
+            board.value!![4][4] = 1
+        }
     }
 
 

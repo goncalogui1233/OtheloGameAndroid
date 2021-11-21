@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="50dp"
     android:layout_height="50dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="2dp"
     android:background="#000000"
     android:gravity="center">
@@ -14,12 +14,26 @@
         android:layout_height="match_parent"
         android:background="#FFFF00">
 
-        <TextView
-            android:gravity="center"
-            android:id="@+id/square_description"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardView_square"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:textColor="#000000" />
+            app:cardCornerRadius="50dp"
+            android:layout_gravity="center"
+            app:strokeColor="#3f5f92"
+            app:strokeWidth="3dp"
+            android:visibility="gone"
+            >
+
+                <TextView
+                    android:id="@+id/square_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textColor="#000000" />
+
+
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 

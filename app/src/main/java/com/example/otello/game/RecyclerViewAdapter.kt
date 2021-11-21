@@ -3,11 +3,15 @@ package com.example.otello.game
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.RotateDrawable
+import android.nfc.cardemulation.CardEmulation
+import android.opengl.Visibility
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.otello.Posicoes
@@ -39,9 +43,30 @@ class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val linha = position.div(mBoardDimensions)
         val coluna = position.rem(mBoardDimensions)
+        val context = holder.itemView.context
 
         //Coloca id do jogador no board
-        holder.playerId.text = if(mData[linha][coluna] != 0) mData[linha][coluna].toString() else ""
+        if(mData[linha][coluna] != 0){
+            holder.cardViewSquare.visibility = View.VISIBLE
+            holder.playerId.text = mData[linha][coluna].toString()
+
+            when(holder.playerId.text){
+                "1" -> {
+                    holder.cardViewSquare.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white))
+                    holder.playerId.setTextColor(Color.BLACK)
+                }
+                "2" -> {
+                    holder.cardViewSquare.setCardBackgroundColor(ContextCompat.getColor(context, R.color.colorPlayer2Circle))
+                    holder.playerId.setTextColor(Color.WHITE)
+                }
+                "3" -> {
+                    holder.cardViewSquare.setCardBackgroundColor(ContextCompat.getColor(context, R.color.colorPlayer3Circle))
+                    holder.playerId.setTextColor(Color.BLACK)
+                }
+            }
+
+        }
+
         //Altera as cores das posições onde o jogador atual pode jogar.
         if(mMoves != null && mMoves?.isNotEmpty()!!) {
             for (pos in mMoves!!) {
@@ -70,6 +95,7 @@ class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         View.OnClickListener {
         val playerId = itemView.findViewById<TextView>(R.id.square_description)
         val squareLayout = itemView.findViewById<LinearLayout>(R.id.square_layout)
+        val cardViewSquare = itemView.findViewById<CardView>(R.id.cardView_square)
 
         override fun onClick(view: View) {
             if (mClickListener != null) {
@@ -86,8 +112,8 @@ class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         }
     }
 
-    // convenience method for getting data at click position
-    fun getItem(id: Int): String? {
+    // Método para extrair dados do array do Adapter. Talvez possa ser necessário?
+    fun getItem(id: Int): String {
         return mData[id].toString()
     }
 
