@@ -11,6 +11,7 @@ class GameViewModel : ViewModel(){
     val numJogadores = MutableLiveData<Int>()
     val boardDimensions = MutableLiveData<Int>()
     val playPositions = MutableLiveData<ArrayList<Posicoes>>()
+    val pontuacaoPlayers = MutableLiveData<ArrayList<Int>>()
 
     fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
@@ -18,13 +19,31 @@ class GameViewModel : ViewModel(){
         boardDimensions.value = boardDimen
         numJogadores.value = numPlayers
 
-        //Organize when PlayerNumber = 2
+        //Organize board when numJogadores = 2
         if(numJogadores.value == 2) {
             board.value!![3][3] = 1
             board.value!![3][4] = 2
             board.value!![4][3] = 2
             board.value!![4][4] = 1
+        } //Organize board when numJogadores = 3
+        else if(numJogadores.value == 3){
+            board.value!![2][4] = 1
+            board.value!![2][5] = 2
+            board.value!![3][4] = 2
+            board.value!![3][5] = 1
+
+            board.value!![6][2] = 3
+            board.value!![6][2] = 1
+            board.value!![7][3] = 1
+            board.value!![7][3] = 3
+
+            board.value!![6][6] = 2
+            board.value!![6][7] = 3
+            board.value!![7][6] = 3
+            board.value!![7][7] = 2
         }
+
+        alterarPontuacoes(board.value!!)
     }
 
 
@@ -42,6 +61,9 @@ class GameViewModel : ViewModel(){
 
                 //Ver todas as peças e muda-las
                 val newBoard = changePieces(line, column, copyBoard)
+
+                //Alterar as pontuações dos jogadores
+                alterarPontuacoes(newBoard)
 
                 //Atualizar o board
                 board.postValue(newBoard)
@@ -88,8 +110,20 @@ class GameViewModel : ViewModel(){
     /**
      * Esta função percorre o board para contar o numero de peças de cada jogador
      */
-    fun checkPieces(){
-        //TODO -> Ver o numero de peças...
+    fun alterarPontuacoes(board : Array<IntArray>){
+        val pont = arrayListOf(0,0,0)
+
+        for (i in board.indices) {
+            for (j in board.indices) {
+                when (board[i][j]) {
+                    1 -> pont[0]++
+                    2 -> pont[1]++
+                    3 -> pont[2]++
+                }
+            }
+        }
+        pontuacaoPlayers.postValue(pont)
+
     }
 
     /**

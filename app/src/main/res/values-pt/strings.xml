@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Otello</string>
+    <string name="title_activity_game">GameActivity</string>
+    <string name="player">Jogador: [X]</string>
+    <string name="twoPlayerScore">Jogador 1: [A] pontos - Jogador 2: [B] pontos</string>
+</resources>

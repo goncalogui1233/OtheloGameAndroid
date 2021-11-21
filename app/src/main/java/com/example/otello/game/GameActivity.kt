@@ -30,6 +30,7 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         v.board.observe(this, observeBoard)
         v.playerTurn.observe(this, observePlayerTurn)
         v.playPositions.observe(this, observePlayerMoves)
+        v.pontuacaoPlayers.observe(this, observePontuacoes)
 
         //Setting the Adapter
         adapter = RecyclerViewAdapter(this, boardD)
@@ -72,7 +73,8 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
     }
 
     private val observePlayerTurn = Observer<Int> {
-        playerTurnInfo.text = "Player " + v.playerTurn.value
+        playerTurnInfo.text = resources.getString(R.string.player)
+            .replace("[X]", v.playerTurn.value.toString())
     }
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
@@ -80,6 +82,12 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
             adapter.setPlayerMoves(it)
             adapter.notifyDataSetChanged()
         }
+    }
+
+    private val observePontuacoes = Observer<ArrayList<Int>> {
+        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
+            .replace("[A]", it[0].toString())
+            .replace("[B]", it[1].toString())
     }
 
     override fun onItemClick(view: View?, line: Int, column: Int) {
