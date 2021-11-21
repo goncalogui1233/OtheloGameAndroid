@@ -1,5 +1,6 @@
 package com.example.otello.game
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.otello.Posicoes
@@ -66,7 +67,7 @@ class GameViewModel : ViewModel(){
                 alterarPontuacoes(newBoard)
 
                 //Atualizar o board
-                board.postValue(newBoard)
+                board.value = (newBoard)
 
                 //Mudar de jogador
                 changePlayer()
@@ -141,6 +142,8 @@ class GameViewModel : ViewModel(){
         }
 
         getPossiblePositions()
+
+        Log.i("TAG", "changePlayer: ")
     }
 
     /**

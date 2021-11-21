@@ -49,6 +49,7 @@ class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         if(mData[linha][coluna] != 0){
             holder.cardViewSquare.visibility = View.VISIBLE
             holder.playerId.text = mData[linha][coluna].toString()
+            holder.squareLayout.background = ColorDrawable(Color.YELLOW)
 
             when(holder.playerId.text){
                 "1" -> {
@@ -68,7 +69,7 @@ class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
         }
 
         //Altera as cores das posições onde o jogador atual pode jogar.
-        if(mMoves != null && mMoves?.isNotEmpty()!!) {
+        if(mMoves != null && mMoves?.size!! > 0) {
             for (pos in mMoves!!) {
                 if (pos.linha == linha && pos.coluna == coluna) {
                     holder.squareLayout.background = ContextCompat.getDrawable(holder.itemView.context, R.color.colorPossibleMove)
