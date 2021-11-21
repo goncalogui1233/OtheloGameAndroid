@@ -77,7 +77,7 @@ class GameViewModel : ViewModel(){
         }
 
         //Check Top Left Diagonal -> TODO DIAGONAL!!!
-       /* lin = line
+        lin = line
         col = column
         while(lin >= 1 && col >= 1){
             lin--
@@ -87,7 +87,7 @@ class GameViewModel : ViewModel(){
                 break
 
             if(copyBoard[lin][col] == playerTurn.value){
-                while(lin >= line && col >= column){
+                while(lin < line && col < column){
                     lin++
                     col++
                     copyBoard[lin][col] = playerTurn.value!!
@@ -95,7 +95,7 @@ class GameViewModel : ViewModel(){
                 break
             }
 
-        }*/
+        }
 
         //Check Top
         lin = line
@@ -112,6 +112,27 @@ class GameViewModel : ViewModel(){
                 }
                 break
             }
+        }
+
+        //check top right diagonal
+        lin = line
+        col = column
+        while(lin >= 1 && col <= boardDimensions.value!! - 1){
+            lin--
+            col++
+
+            if(copyBoard[lin][col] == 0)
+                break
+
+            if(copyBoard[lin][col] == playerTurn.value){
+                while(lin < line && col > column){
+                    lin++
+                    col--
+                    copyBoard[lin][col] = playerTurn.value!!
+                }
+                break
+            }
+
         }
 
         //Check Right
@@ -134,7 +155,7 @@ class GameViewModel : ViewModel(){
         }
 
         //Check Bottom Right Diagonal -> TODO DIAGONAL!!!
-   /*     lin = line
+        lin = line
         col = column
         while(lin <= boardDimensions.value!! - 1 && col <= boardDimensions.value!! -1){
             lin++
@@ -144,7 +165,7 @@ class GameViewModel : ViewModel(){
                 break
 
             if(copyBoard[lin][col] == playerTurn.value){
-                while(lin >= line && col >= column){
+                while(lin > line && col > column){
                     lin--
                     col--
                     copyBoard[lin][col] = playerTurn.value!!
@@ -152,7 +173,7 @@ class GameViewModel : ViewModel(){
                 break
             }
 
-        }*/
+        }
 
         //Check Bottom
         lin = line
@@ -167,6 +188,27 @@ class GameViewModel : ViewModel(){
                 while(lin > line){
                     lin--
                     copyBoard[lin][column] = playerTurn.value!!
+                }
+                break
+            }
+
+        }
+
+        //check bottom left diagonal
+        lin = line
+        col = column
+        while(lin <= boardDimensions.value!! - 1 && col >= 1){
+            lin++
+            col--
+
+            if(copyBoard[lin][col] == 0)
+                break
+
+            if(copyBoard[lin][col] == playerTurn.value){
+                while(lin > line && col < column){
+                    lin--
+                    col++
+                    copyBoard[lin][col] = playerTurn.value!!
                 }
                 break
             }
@@ -212,10 +254,9 @@ class GameViewModel : ViewModel(){
                             k.add(pos)
 
                         //Check Diagonal Top Left
-                       /* pos = checkLeftDiagonal(i, j)
-                        //pos = searchBoardDiagonalTop(i, j, true)
+                        pos = searchBoardDiagonalTop(i, j, true)
                         if(pos != null)
-                            k.add(pos)*/
+                            k.add(pos)
 
                         //Check Top
                         pos = searchBoardColumn(i, j, true)
@@ -223,9 +264,9 @@ class GameViewModel : ViewModel(){
                             k.add(pos)
 
                         //Check Diagonal Top Right
-                       /* pos = searchBoardDiagonalTop(i, j, false)
+                        pos = searchBoardDiagonalTop(i, j, false)
                         if(pos != null)
-                            k.add(pos)*/
+                            k.add(pos)
 
                         //Check Right
                         pos = searchBoardLine(i, j, false)
@@ -233,9 +274,9 @@ class GameViewModel : ViewModel(){
                             k.add(pos)
 
                         //Check Diagonal Bottom Right
-                       /* pos = searchBoardDiagonalBottom(i, j, false)
+                        pos = searchBoardDiagonalBottom(i, j, false)
                         if(pos != null)
-                            k.add(pos)*/
+                            k.add(pos)
 
                         //Check Bottom
                         pos = searchBoardColumn(i, j, false)
@@ -243,9 +284,9 @@ class GameViewModel : ViewModel(){
                             k.add(pos)
 
                         //Check Diagonal Bottom Left
-                   /*     pos = searchBoardDiagonalBottom(i, j, true)
+                        pos = searchBoardDiagonalBottom(i, j, true)
                         if(pos != null)
-                            k.add(pos)*/
+                            k.add(pos)
                     }
                 }
             }
@@ -281,7 +322,7 @@ class GameViewModel : ViewModel(){
 
             if(board[line][col] != 0 && board[line][col] == playerTurn.value){
                 if(checkingLeft) {
-                    if (board[line][column - 1] == 0) {
+                    if (column - 1 >= 0 && board[line][column - 1] == 0) {
                         return Posicoes(line, column - 1)
                     } else {
                         return null
@@ -317,14 +358,14 @@ class GameViewModel : ViewModel(){
             if(board[pos][coluna] == playerTurn.value){
 
                 if(checkingTop) {
-                    if (board[linha - 1][coluna] == 0) {
+                    if ((linha-1) >= 0 &&board[linha - 1][coluna] == 0) {
                         return Posicoes(linha-1, coluna)
                     } else {
                         return null
                     }
                 }
                 else {
-                    if (board[linha+1][coluna] == 0) {
+                    if ( (linha+1) <= boardDimensions.value!! && board[linha+1][coluna] == 0) {
                         return Posicoes(linha+1, coluna)
                     } else {
                         return null
@@ -342,29 +383,32 @@ class GameViewModel : ViewModel(){
     fun searchBoardDiagonalTop(line : Int, column : Int, checkingTopLeft : Boolean) : Posicoes?{
         var lin = line
         var col = column
-        var opponentPiece = false
         val board = board.value!!
 
-        while(if(checkingTopLeft) (lin >= 1 || col >= 1) else (lin <= boardDimensions.value!! - 1) || (col <= boardDimensions.value!! - 1)){
-           if(checkingTopLeft) {
-               col--
-           }
-           else {
-               col++
-           }
-
-            if(board[lin][col] == 0 && opponentPiece){
-                return Posicoes(lin, col)
+        while(if(checkingTopLeft) (lin <= boardDimensions.value!! - 1) && (col <= boardDimensions.value!! - 1) else (lin <= boardDimensions.value!! - 1 && col >= 1)){
+            if (checkingTopLeft) {
+                col++
+            } else {
+                col--
             }
-            else if(board[lin][col] == 0 && !opponentPiece){
-                if(board[lin - 1][col] == 0)
-                    return null
+            lin++
+
+            if(board[lin][col] == playerTurn.value){
+                if(checkingTopLeft){
+                    if ( (line-1)>=0 && (column-1)>=0 && board[line - 1][column - 1] == 0) {
+                        return Posicoes(line-1, column -1)
+                    } else {
+                        return null
+                    }
+                }
+                else {
+                    if ((line-1)>=0 && board[line - 1][column + 1] == 0) {
+                        return Posicoes(line-1, column+1)
+                    } else {
+                        return null
+                    }
+                }
             }
-
-            if(board[lin][col] != playerTurn.value)
-                opponentPiece = true
-
-            lin--
         }
         return null
     }
@@ -372,25 +416,34 @@ class GameViewModel : ViewModel(){
     fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft : Boolean) : Posicoes?{
         var lin = line
         var col = column
-        var opponentPiece = false
         val board = board.value!!
 
-        while(if(checkingBottomLeft) (lin >= 1 || col >= 1) else (lin <= boardDimensions.value!! - 1) || (col <= boardDimensions.value!! - 1)){
+        while(if(checkingBottomLeft) (lin >= 1 && col <= boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)){
             if(checkingBottomLeft)
-                col--
-            else
                 col++
+            else
+                col--
+            lin--
 
-            if(board[lin][col] == 0 && opponentPiece){
-                return Posicoes(lin, col)
+            if(board[lin][col] == playerTurn.value){
+                if(checkingBottomLeft){
+                    if (column - 1 >= 0 && board[line + 1][column - 1] == 0) {
+                        return Posicoes(line+1, column-1)
+                    } else {
+                        return null
+                    }
+                }
+                else {
+                    if (board[line + 1][column + 1] == 0) {
+                        return Posicoes(line+1, column+1)
+                    } else {
+                        return null
+                    }
+                }
+
+
             }
-            else if(board[lin][col] == 0 && !opponentPiece)
-                return null
 
-            if(board[lin][col] != playerTurn.value)
-                opponentPiece = true
-
-            lin++
         }
         return null
     }
