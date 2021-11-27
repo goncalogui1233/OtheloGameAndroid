@@ -1,33 +1,37 @@
-package com.example.otello.game
+package com.example.otello.game.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.otello.Posicoes
+import com.example.otello.game.model.Jogador
+import com.example.otello.game.model.Posicoes
 
 class GameViewModel : ViewModel(){
 
     val board = MutableLiveData<Array<IntArray>>()
-    val playerTurn = MutableLiveData<Int>()
-    val numJogadores = MutableLiveData<Int>()
+    val playerTurn = MutableLiveData<Jogador>()
+    val numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
     val boardDimensions = MutableLiveData<Int>()
     val playPositions = MutableLiveData<ArrayList<Posicoes>>()
     val pontuacaoPlayers = MutableLiveData<ArrayList<Int>>()
+    val endGame = MutableLiveData(false)
 
     fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
         board.value = Array(boardSize) { IntArray(boardSize)}
         boardDimensions.value = boardDimen
-        numJogadores.value = numPlayers
+
+        for(i in 0 until numPlayers)
+            numJogadores.value?.add(Jogador(i+1))
 
         //Organize board when numJogadores = 2
-        if(numJogadores.value == 2) {
+        if(numJogadores.value?.size == 2) {
             board.value!![3][3] = 1
             board.value!![3][4] = 2
             board.value!![4][3] = 2
             board.value!![4][4] = 1
         } //Organize board when numJogadores = 3
-        else if(numJogadores.value == 3){
+        else if(numJogadores.value?.size == 3){
             board.value!![2][4] = 1
             board.value!![2][5] = 2
             board.value!![3][4] = 2
@@ -58,7 +62,7 @@ class GameViewModel : ViewModel(){
             //Check if it's possible to put piece in that position
             if(checkIfPossible(line, column)) {
                 //Coloca posição no board
-                copyBoard[line][column] = playerTurn.value!!
+                copyBoard[line][column] = playerTurn.value?.id!!
 
                 //Ver todas as peças e muda-las
                 val newBoard = changePieces(line, column, copyBoard)
@@ -67,12 +71,50 @@ class GameViewModel : ViewModel(){
                 alterarPontuacoes(newBoard)
 
                 //Atualizar o board
-                board.value = (newBoard)
+                board.value = newBoard
+
+                //Verificar se podemos continuar o jogo
+                estadoJogo(newBoard)
 
                 //Mudar de jogador
                 changePlayer()
             }
         }
+    }
+
+    //TODO -> Finish this special move
+    fun bombMove(board: Array<IntArray>, line : Int, column: Int) : Array<IntArray>{
+        val copyBoard = board
+
+        //Left
+        copyBoard[line][column-1] = 0
+        //Diagonal Top Left
+        copyBoard[line-1][column-1] = 0
+        //Top
+        copyBoard[line-1][column] = 0
+        //Diagonal Top Right
+        copyBoard[line-1][column+1] = 0
+        //Right
+        copyBoard[line][column+1] = 0
+        //Diagonal Bottom Right
+        copyBoard[line+1][column+1] = 0
+        //Bottom
+        copyBoard[line+1][column] = 0
+        //Diagonal Bottom Left
+        copyBoard[line+1][column-1] = 0
+
+        return copyBoard
+    }
+
+    fun estadoJogo(board: Array<IntArray>){
+        for(i in 0 until boardDimensions.value!!){
+            for(j in 0 until boardDimensions.value!!){
+                if(board[i][j] == 0){
+                    return
+                }
+            }
+        }
+        endGame.postValue(true)
     }
 
     /**
@@ -114,8 +156,8 @@ class GameViewModel : ViewModel(){
     fun alterarPontuacoes(board : Array<IntArray>){
         val pont = arrayListOf(0,0,0)
 
-        for (i in board.indices) {
-            for (j in board.indices) {
+        for (i in 0 until boardDimensions.value!!) {
+            for (j in 0 until boardDimensions.value!!) {
                 when (board[i][j]) {
                     1 -> pont[0]++
                     2 -> pont[1]++
@@ -132,13 +174,14 @@ class GameViewModel : ViewModel(){
      */
     fun changePlayer(player: Int = -1) {
         if (player == -1) {
-            if (playerTurn.value == numJogadores.value) {
-                playerTurn.value = 1
+            if (playerTurn.value?.id!! == numJogadores.value?.size!!) {
+                playerTurn.value = numJogadores.value?.get(0)
             } else {
-                playerTurn.value = playerTurn.value?.plus(1)
+                playerTurn.value = numJogadores.
+                value?.get(numJogadores.value?.indexOf(playerTurn.value!!)?.plus(1)!!)
             }
         } else {
-            playerTurn.value = player
+            playerTurn.value = numJogadores.value?.get(player-1)
         }
 
         getPossiblePositions()
@@ -155,9 +198,9 @@ class GameViewModel : ViewModel(){
         if (board != null) {
             val k = arrayListOf<Posicoes>()
 
-            for (i in board.indices) {
-                for (j in board[i].indices) {
-                    if (board[i][j] != 0 && board[i][j] != playerTurn.value) {
+            for (i in 0 until boardDimensions.value!!) {
+                for (j in 0 until boardDimensions.value!!) {
+                    if (board[i][j] != 0 && board[i][j] != playerTurn.value?.id) {
 
                         var pos: Posicoes? = null
                         //Check Left
@@ -232,7 +275,7 @@ class GameViewModel : ViewModel(){
                 col--
             }
 
-            if (board[line][col] != 0 && board[line][col] == playerTurn.value) {
+            if (board[line][col] != 0 && board[line][col] == playerTurn.value?.id) {
                 if (checkingLeft) {
                     if (column - 1 >= 0 && board[line][column - 1] == 0) {
                         return Posicoes(line, column - 1)
@@ -265,7 +308,7 @@ class GameViewModel : ViewModel(){
                 pos--
             }
 
-            if (board[pos][coluna] == playerTurn.value) {
+            if (board[pos][coluna] == playerTurn.value?.id) {
                 if (checkingTop) {
                     if ((linha - 1) >= 0 && board[linha - 1][coluna] == 0) {
                         return Posicoes(linha - 1, coluna)
@@ -301,7 +344,7 @@ class GameViewModel : ViewModel(){
             }
             lin++
 
-            if(board[lin][col] == playerTurn.value){
+            if(board[lin][col] == playerTurn.value?.id){
                 if(checkingTopLeft){
                     if ( (line-1)>=0 && (column-1)>=0 && board[line - 1][column - 1] == 0) {
                         return Posicoes(line-1, column -1)
@@ -337,7 +380,7 @@ class GameViewModel : ViewModel(){
                 col--
             lin--
 
-            if(board[lin][col] == playerTurn.value){
+            if(board[lin][col] == playerTurn.value?.id){
                 if(checkingBottomLeft){
                     if (column - 1 >= 0 && board[line + 1][column - 1] == 0) {
                         return Posicoes(line+1, column-1)
@@ -374,7 +417,7 @@ class GameViewModel : ViewModel(){
                 break
 
             //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[lin][column] == playerTurn.value) {
+            if (copyBoard[lin][column] == playerTurn.value?.id) {
                 while (if (flipTop) lin < line else lin > line) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -383,7 +426,7 @@ class GameViewModel : ViewModel(){
                     } else {
                         lin--
                     }
-                    copyBoard[lin][column] = playerTurn.value!!
+                    copyBoard[lin][column] = playerTurn.value?.id!!
                 }
                 break
             }
@@ -411,7 +454,7 @@ class GameViewModel : ViewModel(){
             }
 
             //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[line][col] == playerTurn.value) {
+            if (copyBoard[line][col] == playerTurn.value?.id) {
                 while (if (flipLeft) col < column else col > column) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -420,7 +463,7 @@ class GameViewModel : ViewModel(){
                     } else {
                         col--
                     }
-                    copyBoard[line][col] = playerTurn.value!!
+                    copyBoard[line][col] = playerTurn.value?.id!!
                 }
                 break
             }
@@ -449,7 +492,7 @@ class GameViewModel : ViewModel(){
                 break
 
             //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[lin][col] == playerTurn.value) {
+            if (copyBoard[lin][col] == playerTurn.value?.id) {
                 while (if (flipDiagonalLeft) lin < line && col < column else lin < line && col > column) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -460,7 +503,7 @@ class GameViewModel : ViewModel(){
                         lin++
                         col--
                     }
-                    copyBoard[lin][col] = playerTurn.value!!
+                    copyBoard[lin][col] = playerTurn.value?.id!!
                 }
                 break
             }
@@ -487,7 +530,7 @@ class GameViewModel : ViewModel(){
             if (copyBoard[lin][col] == 0)
                 break
 
-            if (copyBoard[lin][col] == playerTurn.value) {
+            if (copyBoard[lin][col] == playerTurn.value?.id) {
                 while (if (flipDiagonalLeft) lin > line && col < column else lin > line && col > column) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -498,7 +541,7 @@ class GameViewModel : ViewModel(){
                         lin--
                         col--
                     }
-                    copyBoard[lin][col] = playerTurn.value!!
+                    copyBoard[lin][col] = playerTurn.value?.id!!
                 }
                 break
             }

@@ -1,13 +1,17 @@
-package com.example.otello.game
+package com.example.otello.game.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.otello.Posicoes
+import com.example.otello.game.model.Posicoes
 import com.example.otello.R
+import com.example.otello.game.viewmodel.GameViewModel
+import com.example.otello.game.adapter.RecyclerViewAdapter
+import com.example.otello.game.model.Jogador
 import kotlinx.android.synthetic.main.activity_game.*
 import kotlin.random.Random
 
@@ -31,6 +35,7 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         v.playerTurn.observe(this, observePlayerTurn)
         v.playPositions.observe(this, observePlayerMoves)
         v.pontuacaoPlayers.observe(this, observePontuacoes)
+        v.endGame.observe(this, observeEndGame)
 
         //Setting the Adapter
         adapter = RecyclerViewAdapter(this, boardD)
@@ -63,7 +68,7 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
     }
 
     private fun sortearJogador(){
-        val turn = Random.nextInt(0, v.numJogadores.value!!) + 1
+        val turn = Random.nextInt(0, v.numJogadores.value?.size!!) + 1
         v.changePlayer(turn)
     }
 
@@ -72,9 +77,16 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         adapter.notifyDataSetChanged()
     }
 
-    private val observePlayerTurn = Observer<Int> {
+    private val observePlayerTurn = Observer<Jogador> {
         playerTurnInfo.text = resources.getString(R.string.player)
-            .replace("[X]", v.playerTurn.value.toString())
+            .replace("[X]", v.playerTurn.value?.id.toString())
+    }
+
+    private val observeEndGame = Observer<Boolean> {
+        if(it){
+            //TODO - Show AlertDialog with who won and then, ok button to finish activity
+            Toast.makeText(this, "O jogo acabou", Toast.LENGTH_LONG).show()
+        }
     }
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {

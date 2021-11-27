@@ -3,8 +3,7 @@ package com.example.otello
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.ContactsContract
-import com.example.otello.game.GameActivity
+import com.example.otello.game.activities.GameActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {

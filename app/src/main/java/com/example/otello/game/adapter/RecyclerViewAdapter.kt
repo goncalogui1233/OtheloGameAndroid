@@ -1,11 +1,8 @@
-package com.example.otello.game
+package com.example.otello.game.adapter
 
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.RotateDrawable
-import android.nfc.cardemulation.CardEmulation
-import android.opengl.Visibility
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +11,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.example.otello.Posicoes
+import com.example.otello.game.model.Posicoes
 import com.example.otello.R
 
 

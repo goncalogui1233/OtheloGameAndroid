@@ -16,7 +16,7 @@
         <activity android:name=".photo.PhotoActivity"></activity>
         <activity android:name=".ProfileActivity" />
         <activity
-            android:name=".game.GameActivity"
+            android:name=".game.activities.GameActivity"
             android:label="@string/title_activity_game" />
         <activity android:name=".MainActivity">
             <intent-filter>

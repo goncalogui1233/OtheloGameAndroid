@@ -1,4 +1,4 @@
-package com.example.otello
+package com.example.otello.game.model
 
 class Posicoes {
 
