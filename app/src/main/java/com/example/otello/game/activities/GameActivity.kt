@@ -6,18 +6,17 @@ import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.GridLayoutManager
 import com.example.otello.game.model.Posicoes
 import com.example.otello.R
+import com.example.otello.game.adapter.GridAdapter
 import com.example.otello.game.viewmodel.GameViewModel
-import com.example.otello.game.adapter.RecyclerViewAdapter
 import com.example.otello.game.model.Jogador
 import kotlinx.android.synthetic.main.activity_game.*
 import kotlin.random.Random
 
-class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener {
+class GameActivity : AppCompatActivity() {
 
-    lateinit var adapter : RecyclerViewAdapter
+    lateinit var adapter : GridAdapter
     lateinit var v : GameViewModel
     val boardD = 8
     var shouldSeeMoves : Boolean = false
@@ -37,12 +36,16 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         v.pontuacaoPlayers.observe(this, observePontuacoes)
         v.endGame.observe(this, observeEndGame)
 
-        //Setting the Adapter
-        adapter = RecyclerViewAdapter(this, boardD)
-        adapter.setClickListener(this)
+        //Setting the Adapter, Dimensions and ClickListener for Grid
+        adapter = GridAdapter(this, v.board.value!!)
+        boardGrid.numColumns = v.boardDimensions.value!!
+        boardGrid.adapter = adapter
+        boardGrid.setOnItemClickListener { _, _, i, _ ->
+            val linha = i / 8
+            val coluna = i.rem(8)
 
-        //Set Board RecyclerView
-        setRecyclerView()
+            v.updateValue(linha, coluna)
+        }
 
         //Decidir quem joga primeiro
         sortearJogador()
@@ -62,24 +65,22 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
         }
     }
 
-    private fun setRecyclerView(){
-        recyclerView.layoutManager = GridLayoutManager(this, boardD)
-        recyclerView.adapter = adapter
-    }
-
     private fun sortearJogador(){
         val turn = Random.nextInt(0, v.numJogadores.value?.size!!) + 1
         v.changePlayer(turn)
     }
 
     private val observeBoard = Observer<Array<IntArray>> {
-        adapter.setDataArray(it)
-        adapter.notifyDataSetChanged()
+        adapter.setBoardContent(it)
     }
 
     private val observePlayerTurn = Observer<Jogador> {
         playerTurnInfo.text = resources.getString(R.string.player)
             .replace("[X]", v.playerTurn.value?.id.toString())
+
+        //Ativar/desativar botões para jogadas especiais
+        bombBtn.isEnabled = it.bombPiece
+        changePieceBtn.isEnabled = it.pieceChange
     }
 
     private val observeEndGame = Observer<Boolean> {
@@ -102,7 +103,4 @@ class GameActivity : AppCompatActivity(), RecyclerViewAdapter.ItemClickListener 
             .replace("[B]", it[1].toString())
     }
 
-    override fun onItemClick(view: View?, line: Int, column: Int) {
-        v.updateValue(line, column)
-    }
 }

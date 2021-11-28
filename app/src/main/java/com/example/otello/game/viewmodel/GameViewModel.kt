@@ -245,7 +245,7 @@ class GameViewModel : ViewModel(){
                     }
                 }
             }
-            playPositions.value = k
+            playPositions.postValue(k)
         }
     }
 
@@ -268,7 +268,7 @@ class GameViewModel : ViewModel(){
         var col = column
         val board = board.value!!
 
-        while (if (checkingLeft) col <= (boardDimensions.value!! - 1) else col >= 1) {
+        while (if (checkingLeft) col < (boardDimensions.value!! - 1) else col >= 1) {
             if (checkingLeft) {
                 col++
             } else {
@@ -283,7 +283,7 @@ class GameViewModel : ViewModel(){
                         return null
                     }
                 } else {
-                    if (board[line][column + 1] == 0) {
+                    if (column + 1 < boardDimensions.value!! && board[line][column + 1] == 0) {
                         return Posicoes(line, column + 1)
                     } else {
                         return null
@@ -301,7 +301,7 @@ class GameViewModel : ViewModel(){
         var pos = linha
         val board = board.value!!
 
-        while (if (checkingTop) pos <= (boardDimensions.value!! - 1) else pos >= 1) {
+        while (if (checkingTop) pos < (boardDimensions.value!! - 1) else pos >= 1) {
             if (checkingTop) {
                 pos++
             } else {
@@ -316,7 +316,7 @@ class GameViewModel : ViewModel(){
                         return null
                     }
                 } else {
-                    if ((linha + 1) <= boardDimensions.value!! && board[linha + 1][coluna] == 0) {
+                    if ((linha + 1) < boardDimensions.value!! && board[linha + 1][coluna] == 0) {
                         return Posicoes(linha + 1, coluna)
                     } else {
                         return null
@@ -336,7 +336,7 @@ class GameViewModel : ViewModel(){
         var col = column
         val board = board.value!!
 
-        while(if(checkingTopLeft) (lin <= boardDimensions.value!! - 1) && (col <= boardDimensions.value!! - 1) else (lin <= boardDimensions.value!! - 1 && col >= 1)){
+        while(if(checkingTopLeft) (lin < boardDimensions.value!! - 1) && (col < boardDimensions.value!! - 1) else (lin < boardDimensions.value!! - 1 && col >= 1)){
             if (checkingTopLeft) {
                 col++
             } else {
@@ -353,7 +353,7 @@ class GameViewModel : ViewModel(){
                     }
                 }
                 else {
-                    if ((line-1)>=0 && board[line - 1][column + 1] == 0) {
+                    if ((line-1>0 && column + 1 < boardDimensions.value!!) && board[line - 1][column + 1] == 0) {
                         return Posicoes(line-1, column+1)
                     } else {
                         return null
@@ -373,7 +373,7 @@ class GameViewModel : ViewModel(){
         var col = column
         val board = board.value!!
 
-        while(if(checkingBottomLeft) (lin >= 1 && col <= boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)){
+        while(if(checkingBottomLeft) (lin >= 1 && col < boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)){
             if(checkingBottomLeft)
                 col++
             else
@@ -382,14 +382,15 @@ class GameViewModel : ViewModel(){
 
             if(board[lin][col] == playerTurn.value?.id){
                 if(checkingBottomLeft){
-                    if (column - 1 >= 0 && board[line + 1][column - 1] == 0) {
+                    if ((column - 1 >= 0 && line + 1 < boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
                         return Posicoes(line+1, column-1)
                     } else {
                         return null
                     }
                 }
                 else {
-                    if (board[line + 1][column + 1] == 0) {
+                    if ((line + 1 < boardDimensions.value!! && column +1 < boardDimensions.value!! ) &&
+                            board[line + 1][column + 1] == 0) {
                         return Posicoes(line+1, column+1)
                     } else {
                         return null
@@ -405,7 +406,7 @@ class GameViewModel : ViewModel(){
      */
     private fun flipColumn(copyBoard: Array<IntArray>, line: Int, column: Int, flipTop: Boolean) {
         var lin = line
-        while (if (flipTop) lin >= 1 else lin <= boardDimensions.value!! - 1) {
+        while (if (flipTop) lin >= 1 else lin < boardDimensions.value!! - 1) {
             if (flipTop) {
                 lin--
             } else {
@@ -440,7 +441,7 @@ class GameViewModel : ViewModel(){
 
         var col = column
 
-        while (if (flipLeft) col >= 1 else col <= boardDimensions.value!! - 1) {
+        while (if (flipLeft) col >= 1 else col < boardDimensions.value!! - 1) {
 
             if (flipLeft) {
                 col--
@@ -478,7 +479,7 @@ class GameViewModel : ViewModel(){
         var lin = line
         var col = column
         //Percorrer o board
-        while (if (flipDiagonalLeft) lin >= 1 && col >= 1 else lin >= 1 && col <= boardDimensions.value!! - 1) {
+        while (if (flipDiagonalLeft) lin >= 1 && col >= 1 else lin >= 1 && col < boardDimensions.value!! - 1) {
             if (flipDiagonalLeft) {
                 lin--
                 col--
@@ -517,7 +518,7 @@ class GameViewModel : ViewModel(){
     private fun flipDiagonalBottom(copyBoard: Array<IntArray>, line: Int, column: Int, flipDiagonalLeft: Boolean) {
         var lin = line
         var col = column
-        while (if (flipDiagonalLeft) lin <= boardDimensions.value!! - 1 && col >= 1 else lin <= boardDimensions.value!! - 1 && col <= boardDimensions.value!! - 1) {
+        while (if (flipDiagonalLeft) lin < boardDimensions.value!! - 1 && col >= 1 else lin < boardDimensions.value!! - 1 && col < boardDimensions.value!! - 1) {
             if (flipDiagonalLeft) {
                 lin++
                 col--

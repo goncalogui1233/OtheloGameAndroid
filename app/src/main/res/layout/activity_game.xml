@@ -11,8 +11,8 @@
         android:textColor="@color/black"
         android:layout_gravity="center"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <GridView
+        android:id="@+id/boardGrid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
