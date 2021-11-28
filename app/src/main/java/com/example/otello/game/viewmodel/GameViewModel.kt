@@ -3,52 +3,47 @@ package com.example.otello.game.viewmodel
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
 
 class GameViewModel : ViewModel(){
-
-    val board = MutableLiveData<Array<IntArray>>()
-    val playerTurn = MutableLiveData<Jogador>()
-    val numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
-    val boardDimensions = MutableLiveData<Int>()
-    val playPositions = MutableLiveData<ArrayList<Posicoes>>()
-    val pontuacaoPlayers = MutableLiveData<ArrayList<Int>>()
-    val endGame = MutableLiveData(false)
+    
+    val gameModel = GameModel()
 
     fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
-        board.value = Array(boardSize) { IntArray(boardSize)}
-        boardDimensions.value = boardDimen
+        gameModel.board.value = Array(boardSize) { IntArray(boardSize)}
+        gameModel.boardDimensions.value = boardDimen
 
         for(i in 0 until numPlayers)
-            numJogadores.value?.add(Jogador(i+1))
+            gameModel.numJogadores.value?.add(Jogador(i+1))
 
         //Organize board when numJogadores = 2
-        if(numJogadores.value?.size == 2) {
-            board.value!![3][3] = 1
-            board.value!![3][4] = 2
-            board.value!![4][3] = 2
-            board.value!![4][4] = 1
+        if(gameModel.numJogadores.value?.size == 2) {
+            gameModel.board.value!![3][3] = 1
+            gameModel.board.value!![3][4] = 2
+            gameModel.board.value!![4][3] = 2
+            gameModel.board.value!![4][4] = 1
         } //Organize board when numJogadores = 3
-        else if(numJogadores.value?.size == 3){
-            board.value!![2][4] = 1
-            board.value!![2][5] = 2
-            board.value!![3][4] = 2
-            board.value!![3][5] = 1
+        else if(gameModel.numJogadores.value?.size == 3){
+            gameModel.board.value!![2][4] = 1
+            gameModel.board.value!![2][5] = 2
+            gameModel.board.value!![3][4] = 2
+            gameModel.board.value!![3][5] = 1
 
-            board.value!![6][2] = 3
-            board.value!![6][2] = 1
-            board.value!![7][3] = 1
-            board.value!![7][3] = 3
+            gameModel.board.value!![6][2] = 3
+            gameModel.board.value!![6][2] = 1
+            gameModel.board.value!![7][3] = 1
+            gameModel.board.value!![7][3] = 3
 
-            board.value!![6][6] = 2
-            board.value!![6][7] = 3
-            board.value!![7][6] = 3
-            board.value!![7][7] = 2
+            gameModel.board.value!![6][6] = 2
+            gameModel.board.value!![6][7] = 3
+            gameModel.board.value!![7][6] = 3
+            gameModel.board.value!![7][7] = 2
         }
 
-        alterarPontuacoes(board.value!!)
+        alterarPontuacoes(gameModel.board.value!!)
     }
 
 
@@ -56,22 +51,29 @@ class GameViewModel : ViewModel(){
      * Função que insere uma nova peça no tabuleiro
      */
     fun updateValue(line : Int, column : Int) {
-        val copyBoard = board.value
+        val copyBoard = gameModel.board.value
 
         if(copyBoard != null && copyBoard[line][column] == 0){
             //Check if it's possible to put piece in that position
             if(checkIfPossible(line, column)) {
                 //Coloca posição no board
-                copyBoard[line][column] = playerTurn.value?.id!!
+                copyBoard[line][column] = gameModel.playerTurn.value?.id!!
 
                 //Ver todas as peças e muda-las
-                val newBoard = changePieces(line, column, copyBoard)
+                val newBoard : Array<IntArray>
+                if(gameModel.bombMove){
+                    newBoard = bombMove(copyBoard, line, column)
+                    gameModel.playerTurn.value?.bombPiece = false
+                }
+                else{
+                    newBoard = changePieces(line, column, copyBoard)
+                }
 
                 //Alterar as pontuações dos jogadores
                 alterarPontuacoes(newBoard)
 
                 //Atualizar o board
-                board.value = newBoard
+                gameModel.board.value = newBoard
 
                 //Verificar se podemos continuar o jogo
                 estadoJogo(newBoard)
@@ -107,14 +109,14 @@ class GameViewModel : ViewModel(){
     }
 
     fun estadoJogo(board: Array<IntArray>){
-        for(i in 0 until boardDimensions.value!!){
-            for(j in 0 until boardDimensions.value!!){
+        for(i in 0 until gameModel.boardDimensions.value!!){
+            for(j in 0 until gameModel.boardDimensions.value!!){
                 if(board[i][j] == 0){
                     return
                 }
             }
         }
-        endGame.postValue(true)
+        gameModel.endGame.postValue(true)
     }
 
     /**
@@ -156,8 +158,8 @@ class GameViewModel : ViewModel(){
     fun alterarPontuacoes(board : Array<IntArray>){
         val pont = arrayListOf(0,0,0)
 
-        for (i in 0 until boardDimensions.value!!) {
-            for (j in 0 until boardDimensions.value!!) {
+        for (i in 0 until gameModel.boardDimensions.value!!) {
+            for (j in 0 until gameModel.boardDimensions.value!!) {
                 when (board[i][j]) {
                     1 -> pont[0]++
                     2 -> pont[1]++
@@ -165,7 +167,7 @@ class GameViewModel : ViewModel(){
                 }
             }
         }
-        pontuacaoPlayers.postValue(pont)
+        gameModel.pontuacaoPlayers.postValue(pont)
 
     }
 
@@ -174,14 +176,14 @@ class GameViewModel : ViewModel(){
      */
     fun changePlayer(player: Int = -1) {
         if (player == -1) {
-            if (playerTurn.value?.id!! == numJogadores.value?.size!!) {
-                playerTurn.value = numJogadores.value?.get(0)
+            if (gameModel.playerTurn.value?.id!! == gameModel.numJogadores.value?.size!!) {
+                gameModel.playerTurn.value = gameModel.numJogadores.value?.get(0)
             } else {
-                playerTurn.value = numJogadores.
-                value?.get(numJogadores.value?.indexOf(playerTurn.value!!)?.plus(1)!!)
+                gameModel.playerTurn.value = gameModel.numJogadores.
+                value?.get(gameModel.numJogadores.value?.indexOf(gameModel.playerTurn.value!!)?.plus(1)!!)
             }
         } else {
-            playerTurn.value = numJogadores.value?.get(player-1)
+            gameModel.playerTurn.value = gameModel.numJogadores.value?.get(player-1)
         }
 
         getPossiblePositions()
@@ -193,14 +195,14 @@ class GameViewModel : ViewModel(){
      * Baseado no jogador atual, esta função procura um local para o jogador jogar
      */
     private fun getPossiblePositions(){
-        val board = board.value
+        val board = gameModel.board.value
 
         if (board != null) {
             val k = arrayListOf<Posicoes>()
 
-            for (i in 0 until boardDimensions.value!!) {
-                for (j in 0 until boardDimensions.value!!) {
-                    if (board[i][j] != 0 && board[i][j] != playerTurn.value?.id) {
+            for (i in 0 until gameModel.boardDimensions.value!!) {
+                for (j in 0 until gameModel.boardDimensions.value!!) {
+                    if (board[i][j] != 0 && board[i][j] != gameModel.playerTurn.value?.id) {
 
                         var pos: Posicoes? = null
                         //Check Left
@@ -245,7 +247,7 @@ class GameViewModel : ViewModel(){
                     }
                 }
             }
-            playPositions.postValue(k)
+            gameModel.playPositions.postValue(k)
         }
     }
 
@@ -253,7 +255,7 @@ class GameViewModel : ViewModel(){
      * Função que verifica se o jogador pode inserir peça no local onde clicou
      */
     private fun checkIfPossible(line: Int, column : Int) : Boolean {
-        for (pos in playPositions.value!!){
+        for (pos in gameModel.playPositions.value!!){
             if(line == pos.linha && column == pos.coluna){
                 return true
             }
@@ -266,16 +268,16 @@ class GameViewModel : ViewModel(){
      */
     private fun searchBoardLine(line : Int, column : Int, checkingLeft : Boolean) : Posicoes?{
         var col = column
-        val board = board.value!!
+        val board = gameModel.board.value!!
 
-        while (if (checkingLeft) col < (boardDimensions.value!! - 1) else col >= 1) {
+        while (if (checkingLeft) col < (gameModel.boardDimensions.value!! - 1) else col >= 1) {
             if (checkingLeft) {
                 col++
             } else {
                 col--
             }
 
-            if (board[line][col] != 0 && board[line][col] == playerTurn.value?.id) {
+            if (board[line][col] != 0 && board[line][col] == gameModel.playerTurn.value?.id) {
                 if (checkingLeft) {
                     if (column - 1 >= 0 && board[line][column - 1] == 0) {
                         return Posicoes(line, column - 1)
@@ -283,7 +285,7 @@ class GameViewModel : ViewModel(){
                         return null
                     }
                 } else {
-                    if (column + 1 < boardDimensions.value!! && board[line][column + 1] == 0) {
+                    if (column + 1 < gameModel.boardDimensions.value!! && board[line][column + 1] == 0) {
                         return Posicoes(line, column + 1)
                     } else {
                         return null
@@ -299,16 +301,16 @@ class GameViewModel : ViewModel(){
      */
     private fun searchBoardColumn(linha: Int, coluna: Int, checkingTop: Boolean): Posicoes? {
         var pos = linha
-        val board = board.value!!
+        val board = gameModel.board.value!!
 
-        while (if (checkingTop) pos < (boardDimensions.value!! - 1) else pos >= 1) {
+        while (if (checkingTop) pos < (gameModel.boardDimensions.value!! - 1) else pos >= 1) {
             if (checkingTop) {
                 pos++
             } else {
                 pos--
             }
 
-            if (board[pos][coluna] == playerTurn.value?.id) {
+            if (board[pos][coluna] == gameModel.playerTurn.value?.id) {
                 if (checkingTop) {
                     if ((linha - 1) >= 0 && board[linha - 1][coluna] == 0) {
                         return Posicoes(linha - 1, coluna)
@@ -316,7 +318,7 @@ class GameViewModel : ViewModel(){
                         return null
                     }
                 } else {
-                    if ((linha + 1) < boardDimensions.value!! && board[linha + 1][coluna] == 0) {
+                    if ((linha + 1) < gameModel.boardDimensions.value!! && board[linha + 1][coluna] == 0) {
                         return Posicoes(linha + 1, coluna)
                     } else {
                         return null
@@ -334,9 +336,9 @@ class GameViewModel : ViewModel(){
     private fun searchBoardDiagonalTop(line : Int, column : Int, checkingTopLeft : Boolean) : Posicoes?{
         var lin = line
         var col = column
-        val board = board.value!!
+        val board = gameModel.board.value!!
 
-        while(if(checkingTopLeft) (lin < boardDimensions.value!! - 1) && (col < boardDimensions.value!! - 1) else (lin < boardDimensions.value!! - 1 && col >= 1)){
+        while(if(checkingTopLeft) (lin < gameModel.boardDimensions.value!! - 1) && (col < gameModel.boardDimensions.value!! - 1) else (lin < gameModel.boardDimensions.value!! - 1 && col >= 1)){
             if (checkingTopLeft) {
                 col++
             } else {
@@ -344,7 +346,7 @@ class GameViewModel : ViewModel(){
             }
             lin++
 
-            if(board[lin][col] == playerTurn.value?.id){
+            if(board[lin][col] == gameModel.playerTurn.value?.id){
                 if(checkingTopLeft){
                     if ( (line-1)>=0 && (column-1)>=0 && board[line - 1][column - 1] == 0) {
                         return Posicoes(line-1, column -1)
@@ -353,7 +355,7 @@ class GameViewModel : ViewModel(){
                     }
                 }
                 else {
-                    if ((line-1>0 && column + 1 < boardDimensions.value!!) && board[line - 1][column + 1] == 0) {
+                    if ((line-1>0 && column + 1 < gameModel.boardDimensions.value!!) && board[line - 1][column + 1] == 0) {
                         return Posicoes(line-1, column+1)
                     } else {
                         return null
@@ -371,25 +373,25 @@ class GameViewModel : ViewModel(){
     private fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft : Boolean) : Posicoes?{
         var lin = line
         var col = column
-        val board = board.value!!
+        val board = gameModel.board.value!!
 
-        while(if(checkingBottomLeft) (lin >= 1 && col < boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)){
+        while(if(checkingBottomLeft) (lin >= 1 && col < gameModel.boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)){
             if(checkingBottomLeft)
                 col++
             else
                 col--
             lin--
 
-            if(board[lin][col] == playerTurn.value?.id){
+            if(board[lin][col] == gameModel.playerTurn.value?.id){
                 if(checkingBottomLeft){
-                    if ((column - 1 >= 0 && line + 1 < boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
+                    if ((column - 1 >= 0 && line + 1 < gameModel.boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
                         return Posicoes(line+1, column-1)
                     } else {
                         return null
                     }
                 }
                 else {
-                    if ((line + 1 < boardDimensions.value!! && column +1 < boardDimensions.value!! ) &&
+                    if ((line + 1 < gameModel.boardDimensions.value!! && column +1 < gameModel.boardDimensions.value!! ) &&
                             board[line + 1][column + 1] == 0) {
                         return Posicoes(line+1, column+1)
                     } else {
@@ -406,7 +408,7 @@ class GameViewModel : ViewModel(){
      */
     private fun flipColumn(copyBoard: Array<IntArray>, line: Int, column: Int, flipTop: Boolean) {
         var lin = line
-        while (if (flipTop) lin >= 1 else lin < boardDimensions.value!! - 1) {
+        while (if (flipTop) lin >= 1 else lin < gameModel.boardDimensions.value!! - 1) {
             if (flipTop) {
                 lin--
             } else {
@@ -418,7 +420,7 @@ class GameViewModel : ViewModel(){
                 break
 
             //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[lin][column] == playerTurn.value?.id) {
+            if (copyBoard[lin][column] == gameModel.playerTurn.value?.id) {
                 while (if (flipTop) lin < line else lin > line) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -427,7 +429,7 @@ class GameViewModel : ViewModel(){
                     } else {
                         lin--
                     }
-                    copyBoard[lin][column] = playerTurn.value?.id!!
+                    copyBoard[lin][column] = gameModel.playerTurn.value?.id!!
                 }
                 break
             }
@@ -441,7 +443,7 @@ class GameViewModel : ViewModel(){
 
         var col = column
 
-        while (if (flipLeft) col >= 1 else col < boardDimensions.value!! - 1) {
+        while (if (flipLeft) col >= 1 else col < gameModel.boardDimensions.value!! - 1) {
 
             if (flipLeft) {
                 col--
@@ -455,7 +457,7 @@ class GameViewModel : ViewModel(){
             }
 
             //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[line][col] == playerTurn.value?.id) {
+            if (copyBoard[line][col] == gameModel.playerTurn.value?.id) {
                 while (if (flipLeft) col < column else col > column) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -464,7 +466,7 @@ class GameViewModel : ViewModel(){
                     } else {
                         col--
                     }
-                    copyBoard[line][col] = playerTurn.value?.id!!
+                    copyBoard[line][col] = gameModel.playerTurn.value?.id!!
                 }
                 break
             }
@@ -479,7 +481,7 @@ class GameViewModel : ViewModel(){
         var lin = line
         var col = column
         //Percorrer o board
-        while (if (flipDiagonalLeft) lin >= 1 && col >= 1 else lin >= 1 && col < boardDimensions.value!! - 1) {
+        while (if (flipDiagonalLeft) lin >= 1 && col >= 1 else lin >= 1 && col < gameModel.boardDimensions.value!! - 1) {
             if (flipDiagonalLeft) {
                 lin--
                 col--
@@ -493,7 +495,7 @@ class GameViewModel : ViewModel(){
                 break
 
             //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[lin][col] == playerTurn.value?.id) {
+            if (copyBoard[lin][col] == gameModel.playerTurn.value?.id) {
                 while (if (flipDiagonalLeft) lin < line && col < column else lin < line && col > column) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -504,7 +506,7 @@ class GameViewModel : ViewModel(){
                         lin++
                         col--
                     }
-                    copyBoard[lin][col] = playerTurn.value?.id!!
+                    copyBoard[lin][col] = gameModel.playerTurn.value?.id!!
                 }
                 break
             }
@@ -518,7 +520,7 @@ class GameViewModel : ViewModel(){
     private fun flipDiagonalBottom(copyBoard: Array<IntArray>, line: Int, column: Int, flipDiagonalLeft: Boolean) {
         var lin = line
         var col = column
-        while (if (flipDiagonalLeft) lin < boardDimensions.value!! - 1 && col >= 1 else lin < boardDimensions.value!! - 1 && col < boardDimensions.value!! - 1) {
+        while (if (flipDiagonalLeft) lin < gameModel.boardDimensions.value!! - 1 && col >= 1 else lin < gameModel.boardDimensions.value!! - 1 && col < gameModel.boardDimensions.value!! - 1) {
             if (flipDiagonalLeft) {
                 lin++
                 col--
@@ -531,7 +533,7 @@ class GameViewModel : ViewModel(){
             if (copyBoard[lin][col] == 0)
                 break
 
-            if (copyBoard[lin][col] == playerTurn.value?.id) {
+            if (copyBoard[lin][col] == gameModel.playerTurn.value?.id) {
                 while (if (flipDiagonalLeft) lin > line && col < column else lin > line && col > column) {
                     //Volta na direção oposta até ao local inicial e,
                     //por cada posição que passa, altera a atual pela do jogador que jogou
@@ -542,7 +544,7 @@ class GameViewModel : ViewModel(){
                         lin--
                         col--
                     }
-                    copyBoard[lin][col] = playerTurn.value?.id!!
+                    copyBoard[lin][col] = gameModel.playerTurn.value?.id!!
                 }
                 break
             }

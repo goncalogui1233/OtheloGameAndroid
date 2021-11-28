@@ -30,15 +30,15 @@ class GameActivity : AppCompatActivity() {
 
         v = ViewModelProvider(this).get(GameViewModel::class.java)
         v.initBoard(boardD * boardD, boardD, 2)
-        v.board.observe(this, observeBoard)
-        v.playerTurn.observe(this, observePlayerTurn)
-        v.playPositions.observe(this, observePlayerMoves)
-        v.pontuacaoPlayers.observe(this, observePontuacoes)
-        v.endGame.observe(this, observeEndGame)
+        v.gameModel.board.observe(this, observeBoard)
+        v.gameModel.playerTurn.observe(this, observePlayerTurn)
+        v.gameModel.playPositions.observe(this, observePlayerMoves)
+        v.gameModel.pontuacaoPlayers.observe(this, observePontuacoes)
+        v.gameModel.endGame.observe(this, observeEndGame)
 
         //Setting the Adapter, Dimensions and ClickListener for Grid
-        adapter = GridAdapter(this, v.board.value!!)
-        boardGrid.numColumns = v.boardDimensions.value!!
+        adapter = GridAdapter(this, v.gameModel.board.value!!)
+        boardGrid.numColumns = v.gameModel.boardDimensions.value!!
         boardGrid.adapter = adapter
         boardGrid.setOnItemClickListener { _, _, i, _ ->
             val linha = i / 8
@@ -57,16 +57,20 @@ class GameActivity : AppCompatActivity() {
         showMovesBtn.setOnClickListener {
             shouldSeeMoves = !shouldSeeMoves
             if(shouldSeeMoves)
-                adapter.setPlayerMoves(v.playPositions.value!!)
+                adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
             else
                 adapter.setPlayerMoves(arrayListOf())
 
             adapter.notifyDataSetChanged()
         }
+
+        bombBtn.setOnClickListener {
+            v.gameModel.bombMove = true
+        }
     }
 
     private fun sortearJogador(){
-        val turn = Random.nextInt(0, v.numJogadores.value?.size!!) + 1
+        val turn = Random.nextInt(0, v.gameModel.numJogadores.value?.size!!) + 1
         v.changePlayer(turn)
     }
 
@@ -76,7 +80,7 @@ class GameActivity : AppCompatActivity() {
 
     private val observePlayerTurn = Observer<Jogador> {
         playerTurnInfo.text = resources.getString(R.string.player)
-            .replace("[X]", v.playerTurn.value?.id.toString())
+            .replace("[X]", v.gameModel.playerTurn.value?.id.toString())
 
         //Ativar/desativar botões para jogadas especiais
         bombBtn.isEnabled = it.bombPiece
