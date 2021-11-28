@@ -277,12 +277,12 @@ class GameViewModel : ViewModel(){
      * Função que verifica se o jogador pode inserir peça no local onde clicou
      */
     private fun checkIfPossible(line: Int, column : Int) : Boolean {
-        /*for (pos in gameModel.playPositions.value!!){
+        for (pos in gameModel.playPositions.value!!){
             if(line == pos.linha && column == pos.coluna){
                 return true
             }
-        }*/
-        return true
+        }
+        return false
     }
 
     /**
