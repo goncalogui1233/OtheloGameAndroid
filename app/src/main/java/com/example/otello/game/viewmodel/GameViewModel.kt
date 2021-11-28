@@ -64,6 +64,7 @@ class GameViewModel : ViewModel(){
                 if(gameModel.bombMove){
                     newBoard = bombMove(copyBoard, line, column)
                     gameModel.playerTurn.value?.bombPiece = false
+                    gameModel.bombMove = false
                 }
                 else{
                     newBoard = changePieces(line, column, copyBoard)
@@ -83,27 +84,48 @@ class GameViewModel : ViewModel(){
             }
         }
     }
-
-    //TODO -> Finish this special move
+    
     fun bombMove(board: Array<IntArray>, line : Int, column: Int) : Array<IntArray>{
         val copyBoard = board
 
         //Left
-        copyBoard[line][column-1] = 0
+        if(column - 1 >= 0){
+            copyBoard[line][column-1] = 0
+        }
+
         //Diagonal Top Left
-        copyBoard[line-1][column-1] = 0
+        if(line - 1 >= 0 && column-1 >= 0){
+            copyBoard[line-1][column-1] = 0
+        }
         //Top
-        copyBoard[line-1][column] = 0
+        if(line - 1 >= 0){
+            copyBoard[line-1][column] = 0
+        }
+
         //Diagonal Top Right
-        copyBoard[line-1][column+1] = 0
+        if(line - 1 >= 0 && column + 1 < gameModel.boardDimensions.value!!){
+            copyBoard[line-1][column+1] = 0
+        }
+
         //Right
-        copyBoard[line][column+1] = 0
+        if(column + 1 < gameModel.boardDimensions.value!!){
+            copyBoard[line][column+1] = 0
+        }
+
         //Diagonal Bottom Right
-        copyBoard[line+1][column+1] = 0
+        if(line + 1 < gameModel.boardDimensions.value!! && column + 1 < gameModel.boardDimensions.value!!){
+            copyBoard[line+1][column+1] = 0
+        }
+
         //Bottom
-        copyBoard[line+1][column] = 0
+        if(line + 1 < gameModel.boardDimensions.value!!){
+            copyBoard[line+1][column] = 0
+        }
+
         //Diagonal Bottom Left
-        copyBoard[line+1][column-1] = 0
+        if(line + 1 < gameModel.boardDimensions.value!! && column - 1 >= 0){
+            copyBoard[line+1][column-1] = 0
+        }
 
         return copyBoard
     }
@@ -255,12 +277,12 @@ class GameViewModel : ViewModel(){
      * Função que verifica se o jogador pode inserir peça no local onde clicou
      */
     private fun checkIfPossible(line: Int, column : Int) : Boolean {
-        for (pos in gameModel.playPositions.value!!){
+        /*for (pos in gameModel.playPositions.value!!){
             if(line == pos.linha && column == pos.coluna){
                 return true
             }
-        }
-        return false
+        }*/
+        return true
     }
 
     /**
