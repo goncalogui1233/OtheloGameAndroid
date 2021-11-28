@@ -1,8 +1,8 @@
 package com.example.otello.game.activities
 
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -44,7 +44,17 @@ class GameActivity : AppCompatActivity() {
             val linha = i / 8
             val coluna = i.rem(8)
 
-            v.updateValue(linha, coluna)
+            if(v.gameModel.changePiecesMove){
+                v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
+                if(v.gameModel.changePieceArray.size == 3){
+                    v.changePieceMove()
+                    v.gameModel.changePieceArray.clear()
+                }
+
+            }
+            else {
+                v.updateValue(linha, coluna)
+            }
         }
 
         //Decidir quem joga primeiro
@@ -66,6 +76,19 @@ class GameActivity : AppCompatActivity() {
 
         bombBtn.setOnClickListener {
             v.gameModel.bombMove = true
+        }
+
+        changePieceBtn.setOnClickListener {
+            if(!v.gameModel.changePiecesMove){
+                v.gameModel.changePiecesMove = true
+                it.setBackgroundColor(Color.BLACK)
+            }
+            else {
+                v.gameModel.changePiecesMove = false
+                v.gameModel.changePieceArray.clear()
+                it.setBackgroundColor(Color.GREEN)
+            }
+
         }
     }
 

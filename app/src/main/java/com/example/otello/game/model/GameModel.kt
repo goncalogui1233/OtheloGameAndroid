@@ -13,5 +13,7 @@ class GameModel {
     val endGame = MutableLiveData(false)
 
     var bombMove = false
+    var changePiecesMove = false
+    val changePieceArray = arrayListOf<Posicoes>()
 
 }

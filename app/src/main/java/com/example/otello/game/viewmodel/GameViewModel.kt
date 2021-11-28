@@ -1,7 +1,6 @@
 package com.example.otello.game.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
@@ -128,6 +127,38 @@ class GameViewModel : ViewModel(){
         }
 
         return copyBoard
+    }
+
+    /**
+     * Applies special change piece to the board
+     * Position 0 & 1 -> Pieces from the current player
+     * Position 2 -> Piece from the other player
+     */
+    fun changePieceMove(){
+        //TODO -> Alterar a visualização dos botões agora...
+        val copyBoard = gameModel.board.value!!
+        val currPlayerPiece = copyBoard[gameModel.changePieceArray[0].linha][gameModel.changePieceArray[0].coluna]
+        val otherPlayerPiece = copyBoard[gameModel.changePieceArray[2].linha][gameModel.changePieceArray[2].coluna]
+
+        copyBoard[gameModel.changePieceArray[0].linha][gameModel.changePieceArray[0].coluna] = otherPlayerPiece
+        copyBoard[gameModel.changePieceArray[1].linha][gameModel.changePieceArray[1].coluna] = otherPlayerPiece
+        copyBoard[gameModel.changePieceArray[2].linha][gameModel.changePieceArray[2].coluna] = currPlayerPiece
+
+        //Altera a propriedade para o jogador não poder usar este special
+        gameModel.playerTurn.value?.pieceChange = false
+
+        //Alterar as pontuações dos jogadores
+        alterarPontuacoes(copyBoard)
+
+        //Verificar se podemos continuar o jogo
+        estadoJogo(copyBoard)
+
+        //Altera o board
+        gameModel.board.postValue(copyBoard)
+
+        //Mudar de jogador
+        changePlayer()
+
     }
 
     fun estadoJogo(board: Array<IntArray>){
