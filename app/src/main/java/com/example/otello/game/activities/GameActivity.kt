@@ -78,15 +78,20 @@ class GameActivity : AppCompatActivity() {
             if(!v.gameModel.changePiecesMove.value!!) {
                 if (v.gameModel.bombMove.value!!) {
                     v.gameModel.bombMove.value = false
-                    Snackbar.make(man, "Bomb Special deactivated", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(gameRootLayout,
+                        resources.getString(R.string.bombSpecial) + resources.getString(R.string.deactivated),
+                        Snackbar.LENGTH_LONG).show()
                 }
                 else {
                     v.gameModel.bombMove.value = true
-                    Snackbar.make(man, "Bomb Special activated", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(gameRootLayout,
+                        resources.getString(R.string.bombSpecial) + resources.getString(R.string.activated),
+                        Snackbar.LENGTH_LONG).show()
                 }
             }
             else {
-                Snackbar.make(man, "Change Piece Special activated, deactivate it to use this one", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(gameRootLayout,
+                    resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
             }
         }
 
@@ -94,15 +99,20 @@ class GameActivity : AppCompatActivity() {
             if(!v.gameModel.bombMove.value!!) {
                 if (!v.gameModel.changePiecesMove.value!!) {
                     v.gameModel.changePiecesMove.value = true
-                    Snackbar.make(man, "Change Piece Special activated", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(gameRootLayout,
+                        resources.getString(R.string.changePieceSpecial) + resources.getString(R.string.activated),
+                        Snackbar.LENGTH_LONG).show()
                 } else {
                     v.gameModel.changePiecesMove.value = false
                     v.gameModel.changePieceArray.clear()
-                    Snackbar.make(man, "Change Piece Special deactivated", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(gameRootLayout,
+                        resources.getString(R.string.changePieceSpecial) + resources.getString(R.string.deactivated),
+                        Snackbar.LENGTH_LONG).show()
                 }
             }
             else {
-                Snackbar.make(man, "Bomb Move Special activated, deactivate it to use this one", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(gameRootLayout,
+                    resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
             }
 
         }
@@ -131,7 +141,8 @@ class GameActivity : AppCompatActivity() {
             .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
             .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
 
-        //Verificar se, após mudar o jogador, é possível continuar o jogo
+        //Verificar se, após mudar o jogador, é possível continuar o jogo pois
+        //pode existir o caso de ambos os jogadores não terem jogadas disponíveis
         for(i in v.gameModel.numJogadores.value!!){
             if(i.hadMoves)
                 return@Observer
@@ -150,10 +161,12 @@ class GameActivity : AppCompatActivity() {
                 }
 
             AlertDialog.Builder(this)
-                .setTitle("End Game")
-                .setMessage("Player ${winner.id} wins with ${winner.score} points")
+                .setTitle(resources.getString(R.string.endGame))
+                .setMessage(resources.getString(R.string.finalMessage)
+                    .replace("[X]", winner.id.toString())
+                    .replace("[Y]", winner.score.toString()))
                 .setCancelable(false)
-                .setPositiveButton("OK") { _, _ ->
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                     finish()
                 }
                 .show()
