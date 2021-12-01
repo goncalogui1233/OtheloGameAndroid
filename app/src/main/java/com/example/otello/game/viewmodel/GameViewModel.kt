@@ -60,10 +60,10 @@ class GameViewModel : ViewModel(){
 
                 //Ver todas as peças e muda-las
                 val newBoard : Array<IntArray>
-                if(gameModel.bombMove){
+                if(gameModel.bombMove.value!!){
                     newBoard = bombMove(copyBoard, line, column)
                     gameModel.playerTurn.value?.bombPiece = false
-                    gameModel.bombMove = false
+                    gameModel.bombMove.value = false
                 }
                 else{
                     newBoard = changePieces(line, column, copyBoard)

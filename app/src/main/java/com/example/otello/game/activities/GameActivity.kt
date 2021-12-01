@@ -11,6 +11,7 @@ import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
 import com.example.otello.game.viewmodel.GameViewModel
 import com.example.otello.game.model.Jogador
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_game.*
 import kotlin.random.Random
 
@@ -44,7 +45,7 @@ class GameActivity : AppCompatActivity() {
             val linha = i / 8
             val coluna = i.rem(8)
 
-            if(v.gameModel.changePiecesMove){
+            if(v.gameModel.changePiecesMove.value!!){
                 v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
                 if(v.gameModel.changePieceArray.size == 3){
                     v.changePieceMove()
@@ -75,18 +76,35 @@ class GameActivity : AppCompatActivity() {
         }
 
         bombBtn.setOnClickListener {
-            v.gameModel.bombMove = true
+            //Só ativa o special da bomba caso outro special não esteja ativo
+            if(!v.gameModel.changePiecesMove.value!!) {
+                if (v.gameModel.bombMove.value!!) {
+                    v.gameModel.bombMove.value = false
+                    Snackbar.make(man, "Bomb Special deactivated", Snackbar.LENGTH_LONG).show()
+                }
+                else {
+                    v.gameModel.bombMove.value = true
+                    Snackbar.make(man, "Bomb Special activated", Snackbar.LENGTH_LONG).show()
+                }
+            }
+            else {
+                Snackbar.make(man, "Change Piece Special activated, deactivate it to use this one", Snackbar.LENGTH_LONG).show()
+            }
         }
 
         changePieceBtn.setOnClickListener {
-            if(!v.gameModel.changePiecesMove){
-                v.gameModel.changePiecesMove = true
-                it.setBackgroundColor(Color.BLACK)
+            if(!v.gameModel.bombMove.value!!) {
+                if (!v.gameModel.changePiecesMove.value!!) {
+                    v.gameModel.changePiecesMove.value = true
+                    Snackbar.make(man, "Change Piece Special activated", Snackbar.LENGTH_LONG).show()
+                } else {
+                    v.gameModel.changePiecesMove.value = false
+                    v.gameModel.changePieceArray.clear()
+                    Snackbar.make(man, "Change Piece Special deactivated", Snackbar.LENGTH_LONG).show()
+                }
             }
             else {
-                v.gameModel.changePiecesMove = false
-                v.gameModel.changePieceArray.clear()
-                it.setBackgroundColor(Color.GREEN)
+                Snackbar.make(man, "Bomb Move Special activated, deactivate it to use this one", Snackbar.LENGTH_LONG).show()
             }
 
         }

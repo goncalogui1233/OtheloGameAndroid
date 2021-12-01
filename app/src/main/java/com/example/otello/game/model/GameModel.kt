@@ -10,10 +10,12 @@ class GameModel {
     val boardDimensions = MutableLiveData<Int>()
     val playPositions = MutableLiveData<ArrayList<Posicoes>>()
     val pontuacaoPlayers = MutableLiveData<ArrayList<Int>>()
-    val endGame = MutableLiveData(false)
 
-    var bombMove = false
-    var changePiecesMove = false
+
+    val endGame = MutableLiveData(false)
+    var bombMove = MutableLiveData(false)
+    var changePiecesMove = MutableLiveData(false)
+
     val changePieceArray = arrayListOf<Posicoes>()
 
 }
