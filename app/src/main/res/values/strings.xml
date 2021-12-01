@@ -5,5 +5,15 @@
 
     <string name="player">Player: [X]</string>
     <string name="twoPlayerScore">Player 1: [A] points - Player 2: [B] points</string>
+    <string name="activated"> activated</string>
+    <string name="deactivated"> deactivated</string>
+    <string name="bombSpecial">Bomb Special</string>
+    <string name="changePieceSpecial">Change Piece Special</string>
+    <string name="noBombPossible">Change Piece Special activated, deactivate it to use this one</string>
+    <string name="noChangePiecePossible">Bomb Special activated, deactivate it to use this one</string>
+    <string name="finalMessage">Player [X] wins with [Y] points</string>
+    <string name="endGame">End Game</string>
+    <string name="ok">OK</string>
+
 
 </resources>
