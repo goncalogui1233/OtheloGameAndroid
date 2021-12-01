@@ -1,9 +1,7 @@
 package com.example.otello.game.activities
 
-import android.content.DialogInterface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -132,6 +130,13 @@ class GameActivity : AppCompatActivity() {
         pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
             .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
             .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
+
+        //Verificar se, após mudar o jogador, é possível continuar o jogo
+        for(i in v.gameModel.numJogadores.value!!){
+            if(i.hadMoves)
+                return@Observer
+        }
+        v.gameModel.endGame.postValue(true)
     }
 
     private val observeEndGame = Observer<Boolean> {
@@ -143,7 +148,6 @@ class GameActivity : AppCompatActivity() {
                         winner = v.gameModel.numJogadores.value!![i]
                     }
                 }
-
 
             AlertDialog.Builder(this)
                 .setTitle("End Game")

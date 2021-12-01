@@ -1,6 +1,5 @@
 package com.example.otello.game.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
@@ -231,80 +230,84 @@ class GameViewModel : ViewModel(){
      * Esta função altera o jogador atual e vê quais os locais onde ele pode jogar.
      */
     fun changePlayer(player: Int = -1) {
+        var newPlayer : Jogador? = null
+
         if (player == -1) {
             if (gameModel.playerTurn.value?.id!! == gameModel.numJogadores.value?.size!!) {
-                gameModel.playerTurn.value = gameModel.numJogadores.value?.get(0)
+                newPlayer = gameModel.numJogadores.value?.get(0)
             } else {
-                gameModel.playerTurn.value = gameModel.numJogadores.
+                newPlayer = gameModel.numJogadores.
                 value?.get(gameModel.numJogadores.value?.indexOf(gameModel.playerTurn.value!!)?.plus(1)!!)
             }
         } else {
-            gameModel.playerTurn.value = gameModel.numJogadores.value?.get(player-1)
+            newPlayer = gameModel.numJogadores.value?.get(player-1)
         }
 
-        getPossiblePositions()
+        newPlayer!!.hadMoves = getPossiblePositions(newPlayer) > 0
 
-        Log.i("TAG", "changePlayer: ")
+        gameModel.playerTurn.value = newPlayer
     }
 
     /**
      * Baseado no jogador atual, esta função procura um local para o jogador jogar
      */
-    private fun getPossiblePositions(){
+    private fun getPossiblePositions(jogador: Jogador) : Int{
         val board = gameModel.board.value
 
         if (board != null) {
-            val k = arrayListOf<Posicoes>()
+            val possiblePositions = arrayListOf<Posicoes>()
 
             for (i in 0 until gameModel.boardDimensions.value!!) {
                 for (j in 0 until gameModel.boardDimensions.value!!) {
-                    if (board[i][j] != 0 && board[i][j] != gameModel.playerTurn.value?.id) {
+                    if (board[i][j] != 0 && board[i][j] != jogador.id) {
 
                         var pos: Posicoes? = null
                         //Check Left
                         pos = searchBoardLine(i, j, true)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
 
                         //Check Diagonal Top Left
                         pos = searchBoardDiagonalTop(i, j, true)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
 
                         //Check Top
                         pos = searchBoardColumn(i, j, true)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
 
                         //Check Diagonal Top Right
                         pos = searchBoardDiagonalTop(i, j, false)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
 
                         //Check Right
                         pos = searchBoardLine(i, j, false)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
 
                         //Check Diagonal Bottom Right
                         pos = searchBoardDiagonalBottom(i, j, false)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
 
                         //Check Bottom
                         pos = searchBoardColumn(i, j, false)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
 
                         //Check Diagonal Bottom Left
                         pos = searchBoardDiagonalBottom(i, j, true)
                         if (pos != null)
-                            k.add(pos)
+                            possiblePositions.add(pos)
                     }
                 }
             }
-            gameModel.playPositions.postValue(k)
+            gameModel.playPositions.postValue(possiblePositions)
+            return possiblePositions.size
         }
+        return 0
     }
 
     /**
