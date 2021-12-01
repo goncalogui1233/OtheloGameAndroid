@@ -1,9 +1,7 @@
 package com.example.otello.game.activities
 
-import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -80,19 +78,19 @@ class GameActivity : AppCompatActivity() {
             if(!v.gameModel.changePiecesMove.value!!) {
                 if (v.gameModel.bombMove.value!!) {
                     v.gameModel.bombMove.value = false
-                    Snackbar.make(man,
+                    Snackbar.make(gameLayout,
                         resources.getString(R.string.bombSpecial) + resources.getString(R.string.deactivated),
                         Snackbar.LENGTH_LONG).show()
                 }
                 else {
                     v.gameModel.bombMove.value = true
-                    Snackbar.make(man,
+                    Snackbar.make(gameLayout,
                         resources.getString(R.string.bombSpecial) + resources.getString(R.string.activated),
                         Snackbar.LENGTH_LONG).show()
                 }
             }
             else {
-                Snackbar.make(man,
+                Snackbar.make(gameLayout,
                     resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
             }
         }
@@ -101,19 +99,19 @@ class GameActivity : AppCompatActivity() {
             if(!v.gameModel.bombMove.value!!) {
                 if (!v.gameModel.changePiecesMove.value!!) {
                     v.gameModel.changePiecesMove.value = true
-                    Snackbar.make(man,
+                    Snackbar.make(gameLayout,
                         resources.getString(R.string.changePieceSpecial) + resources.getString(R.string.activated),
                         Snackbar.LENGTH_LONG).show()
                 } else {
                     v.gameModel.changePiecesMove.value = false
                     v.gameModel.changePieceArray.clear()
-                    Snackbar.make(man,
+                    Snackbar.make(gameLayout,
                         resources.getString(R.string.changePieceSpecial) + resources.getString(R.string.deactivated),
                         Snackbar.LENGTH_LONG).show()
                 }
             }
             else {
-                Snackbar.make(man,
+                Snackbar.make(gameLayout,
                     resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
             }
 

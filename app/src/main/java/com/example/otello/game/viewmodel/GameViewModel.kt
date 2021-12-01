@@ -243,8 +243,6 @@ class GameViewModel : ViewModel(){
         }
 
         getPossiblePositions()
-
-        Log.i("TAG", "changePlayer: ")
     }
 
     /**
@@ -303,7 +301,7 @@ class GameViewModel : ViewModel(){
                     }
                 }
             }
-            gameModel.playPositions.postValue(k)
+            gameModel.playPositions.value = k
         }
     }
 
