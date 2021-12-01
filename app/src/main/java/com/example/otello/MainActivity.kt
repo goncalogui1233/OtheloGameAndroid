@@ -14,7 +14,6 @@ class MainActivity : AppCompatActivity() {
 
 
         startGame.setOnClickListener {
-           // startActivity(Intent(this, TestActivity::class.java))
             startActivity(Intent(this, GameActivity::class.java))
         }
 
