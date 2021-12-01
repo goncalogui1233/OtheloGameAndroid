@@ -126,6 +126,9 @@ class GameViewModel : ViewModel(){
             copyBoard[line+1][column-1] = 0
         }
 
+        //Desliga o special no modelo do jogo
+        gameModel.bombMove.value = false
+
         return copyBoard
     }
 
@@ -135,17 +138,19 @@ class GameViewModel : ViewModel(){
      * Position 2 -> Piece from the other player
      */
     fun changePieceMove(){
-        //TODO -> Alterar a visualização dos botões agora...
         val copyBoard = gameModel.board.value!!
         val currPlayerPiece = copyBoard[gameModel.changePieceArray[0].linha][gameModel.changePieceArray[0].coluna]
         val otherPlayerPiece = copyBoard[gameModel.changePieceArray[2].linha][gameModel.changePieceArray[2].coluna]
 
+        //Altera as peças no board
         copyBoard[gameModel.changePieceArray[0].linha][gameModel.changePieceArray[0].coluna] = otherPlayerPiece
         copyBoard[gameModel.changePieceArray[1].linha][gameModel.changePieceArray[1].coluna] = otherPlayerPiece
         copyBoard[gameModel.changePieceArray[2].linha][gameModel.changePieceArray[2].coluna] = currPlayerPiece
 
         //Altera a propriedade para o jogador não poder usar este special
         gameModel.playerTurn.value?.pieceChange = false
+        //Desliga o special no jogo
+        gameModel.changePiecesMove.value = false
 
         //Alterar as pontuações dos jogadores
         alterarPontuacoes(copyBoard)
@@ -214,14 +219,12 @@ class GameViewModel : ViewModel(){
         for (i in 0 until gameModel.boardDimensions.value!!) {
             for (j in 0 until gameModel.boardDimensions.value!!) {
                 when (board[i][j]) {
-                    1 -> pont[0]++
-                    2 -> pont[1]++
-                    3 -> pont[2]++
+                    1 -> gameModel.numJogadores.value!![0].score++
+                    2 -> gameModel.numJogadores.value!![1].score++
+                    3 -> gameModel.numJogadores.value!![2].score++
                 }
             }
         }
-        gameModel.pontuacaoPlayers.postValue(pont)
-
     }
 
     /**
@@ -308,8 +311,8 @@ class GameViewModel : ViewModel(){
      * Função que verifica se o jogador pode inserir peça no local onde clicou
      */
     private fun checkIfPossible(line: Int, column : Int) : Boolean {
-        for (pos in gameModel.playPositions.value!!){
-            if(line == pos.linha && column == pos.coluna){
+        for (pos in gameModel.playPositions.value!!) {
+            if (line == pos.linha && column == pos.coluna) {
                 return true
             }
         }

@@ -6,6 +6,7 @@ class Jogador {
     var bombPiece : Boolean
     var pieceChange : Boolean
     var playedLastTime : Boolean
+    var score : Int = 0
 
     constructor(id : Int) {
         this.id = id

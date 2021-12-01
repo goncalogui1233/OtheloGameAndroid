@@ -1,9 +1,10 @@
 package com.example.otello.game.activities
 
-import android.graphics.Color
+import android.content.DialogInterface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.otello.game.model.Posicoes
@@ -34,7 +35,6 @@ class GameActivity : AppCompatActivity() {
         v.gameModel.board.observe(this, observeBoard)
         v.gameModel.playerTurn.observe(this, observePlayerTurn)
         v.gameModel.playPositions.observe(this, observePlayerMoves)
-        v.gameModel.pontuacaoPlayers.observe(this, observePontuacoes)
         v.gameModel.endGame.observe(this, observeEndGame)
 
         //Setting the Adapter, Dimensions and ClickListener for Grid
@@ -120,18 +120,41 @@ class GameActivity : AppCompatActivity() {
     }
 
     private val observePlayerTurn = Observer<Jogador> {
+        //Atualizar o ecrã sobre o atual jogador
         playerTurnInfo.text = resources.getString(R.string.player)
             .replace("[X]", v.gameModel.playerTurn.value?.id.toString())
 
         //Ativar/desativar botões para jogadas especiais
         bombBtn.isEnabled = it.bombPiece
         changePieceBtn.isEnabled = it.pieceChange
+
+        //Ao mudar o jogador, atualizar as pontuações
+        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
+            .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
+            .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
     }
 
     private val observeEndGame = Observer<Boolean> {
         if(it){
-            //TODO - Show AlertDialog with who won and then, ok button to finish activity
-            Toast.makeText(this, "O jogo acabou", Toast.LENGTH_LONG).show()
+            if(v.gameModel.numJogadores.value != null) {
+                var winner = v.gameModel.numJogadores.value!![0]
+                for (i in 1 until v.gameModel.numJogadores.value?.size!!) {
+                    if(v.gameModel.numJogadores.value!![i].score > winner.score){
+                        winner = v.gameModel.numJogadores.value!![i]
+                    }
+                }
+
+
+            AlertDialog.Builder(this)
+                .setTitle("End Game")
+                .setMessage("Player ${winner.id} wins with ${winner.score} points")
+                .setCancelable(false)
+                .setPositiveButton("OK") { _, _ ->
+                    finish()
+                }
+                .show()
+
+            }
         }
     }
 
@@ -140,12 +163,6 @@ class GameActivity : AppCompatActivity() {
             adapter.setPlayerMoves(it)
             adapter.notifyDataSetChanged()
         }
-    }
-
-    private val observePontuacoes = Observer<ArrayList<Int>> {
-        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
-            .replace("[A]", it[0].toString())
-            .replace("[B]", it[1].toString())
     }
 
 }
