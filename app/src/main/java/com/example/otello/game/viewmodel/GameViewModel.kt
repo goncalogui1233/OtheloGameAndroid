@@ -159,7 +159,7 @@ class GameViewModel : ViewModel(){
         estadoJogo(copyBoard)
 
         //Altera o board
-        gameModel.board.postValue(copyBoard)
+        gameModel.board.value = copyBoard
 
         //Mudar de jogador
         changePlayer()
@@ -219,11 +219,15 @@ class GameViewModel : ViewModel(){
         for (i in 0 until gameModel.boardDimensions.value!!) {
             for (j in 0 until gameModel.boardDimensions.value!!) {
                 when (board[i][j]) {
-                    1 -> gameModel.numJogadores.value!![0].score++
-                    2 -> gameModel.numJogadores.value!![1].score++
-                    3 -> gameModel.numJogadores.value!![2].score++
+                    1 -> pont[0]++
+                    2 -> pont[1]++
+                    3 -> pont[2]++
                 }
             }
+        }
+
+        for(i in 0 until gameModel.numJogadores.value!!.size){
+            gameModel.numJogadores.value!![i].score = pont[i]
         }
     }
 

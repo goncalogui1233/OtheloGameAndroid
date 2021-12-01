@@ -79,13 +79,13 @@ class GameActivity : AppCompatActivity() {
                 if (v.gameModel.bombMove.value!!) {
                     v.gameModel.bombMove.value = false
                     Snackbar.make(gameLayout,
-                        resources.getString(R.string.bombSpecial) + resources.getString(R.string.deactivated),
+                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
                         Snackbar.LENGTH_LONG).show()
                 }
                 else {
                     v.gameModel.bombMove.value = true
                     Snackbar.make(gameLayout,
-                        resources.getString(R.string.bombSpecial) + resources.getString(R.string.activated),
+                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
                         Snackbar.LENGTH_LONG).show()
                 }
             }
@@ -100,13 +100,13 @@ class GameActivity : AppCompatActivity() {
                 if (!v.gameModel.changePiecesMove.value!!) {
                     v.gameModel.changePiecesMove.value = true
                     Snackbar.make(gameLayout,
-                        resources.getString(R.string.changePieceSpecial) + resources.getString(R.string.activated),
+                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
                         Snackbar.LENGTH_LONG).show()
                 } else {
                     v.gameModel.changePiecesMove.value = false
                     v.gameModel.changePieceArray.clear()
                     Snackbar.make(gameLayout,
-                        resources.getString(R.string.changePieceSpecial) + resources.getString(R.string.deactivated),
+                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
                         Snackbar.LENGTH_LONG).show()
                 }
             }
