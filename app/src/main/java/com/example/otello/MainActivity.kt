@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
 
-        startGame.setOnClickListener {
+        startLocalGame.setOnClickListener {
             startActivity(Intent(this, GameActivity::class.java))
         }
 

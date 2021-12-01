@@ -28,11 +28,26 @@
 
     </androidx.cardview.widget.CardView>
 
-    <Button
-        android:id="@+id/startGame"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Go to game"/>
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/startLocalGame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="Jogo Local" />
+
+        <Button
+            android:id="@+id/startOnlineGame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="Jogo Online" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/profileBtn"
