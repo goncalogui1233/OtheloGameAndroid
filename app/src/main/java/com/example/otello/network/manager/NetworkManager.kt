@@ -7,7 +7,6 @@ import java.net.Socket
 
 object NetworkManager {
 
-    val socketList = arrayListOf<Socket>()
     var socketEnt : Socket? = null
 
     fun sendInfo(socket: Socket, info : String) {

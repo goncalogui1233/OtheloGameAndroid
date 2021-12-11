@@ -1,6 +1,9 @@
 package com.example.otello.photo
 
 import android.Manifest
+import android.app.Dialog
+import android.content.Context
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -16,13 +19,17 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import com.example.otello.ProfileActivity
 import com.example.otello.R
 import kotlinx.android.synthetic.main.photo_dialog.*
 import kotlinx.android.synthetic.main.photo_dialog.view.*
 import java.io.File
 import java.lang.Exception
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 class PhotoDialog2 : DialogFragment() {
 
@@ -39,6 +46,7 @@ class PhotoDialog2 : DialogFragment() {
 
         view.btnTakePhoto.setOnClickListener {
             takePhoto()
+            view.btnTakePhoto.isEnabled = false
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -72,21 +80,22 @@ class PhotoDialog2 : DialogFragment() {
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
-        val file = File("$directory/photo.jpg")
+        val file = File(directory + "/" + Random.nextInt() + ".jpg")
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
 
         imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(requireContext()),
-        object : ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                Toast.makeText(requireContext(), "Photo Saved - ${directory + "/photo.jpg"}", Toast.LENGTH_SHORT).show()
-            }
+                object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        PhotoPreview.newInstance(file.absolutePath).show(requireActivity().supportFragmentManager, "KKK")
+                        dismiss()
+                    }
 
-            override fun onError(exception: ImageCaptureException) {
-                Toast.makeText(requireContext(), "Photo Not Saved", Toast.LENGTH_SHORT).show()
-            }
+                    override fun onError(exception: ImageCaptureException) {
+                        Toast.makeText(requireContext(), "Photo Not Saved", Toast.LENGTH_SHORT).show()
+                    }
 
-        })
+                })
     }
 
     private fun startCamera() {

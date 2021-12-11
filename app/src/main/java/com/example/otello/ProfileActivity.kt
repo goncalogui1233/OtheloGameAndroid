@@ -8,12 +8,15 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.example.otello.photo.PhotoDialog2
+import com.example.otello.photo.PhotoPreview
+import com.example.otello.utils.ConstStrings
 import com.example.otello.utils.OtheloUtils
 import kotlinx.android.synthetic.main.activity_profile.*
 import java.io.File
@@ -42,7 +45,7 @@ class ProfileActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
     }
 
     private fun setPlayerImage() {
-        val imgPath = File(applicationContext.filesDir.toString() + "/photo.jpg")
+        val imgPath = File(photoName)
         if(imgPath.exists()){
             val b = BitmapFactory.decodeFile(imgPath.absolutePath)
             val rotation = OtheloUtils.rotateBitmap(imgPath.absolutePath)
@@ -54,20 +57,23 @@ class ProfileActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
     }
 
     override fun onDismiss(dialogInt: DialogInterface?) {
+        //Update photo path
+        photoName = getSharedPreferences(ConstStrings.SHARED_PREFERENCES_INSTANCE, Context.MODE_PRIVATE)
+                .getString(ConstStrings.SHARED_PREFERENCES_PHOTO, "").toString()
+
         setPlayerImage()
     }
 
     private fun readFromSharedPreferences() {
-        val pref = getSharedPreferences("ProfileInfo", Context.MODE_PRIVATE)
+        val pref = getSharedPreferences(ConstStrings.SHARED_PREFERENCES_INSTANCE, Context.MODE_PRIVATE)
 
-        playerName = pref.getString("PLAYER_NAME", "").toString()
-        photoName = pref.getString("PHOTO_NAME", "").toString()
+        playerName = pref.getString(ConstStrings.SHARED_PREFERENCES_NAME, "").toString()
+        photoName = pref.getString(ConstStrings.SHARED_PREFERENCES_PHOTO, "").toString()
     }
 
     private fun saveOnSharedPreferences() {
-        getSharedPreferences("ProfileInfo", Context.MODE_PRIVATE).edit {
-            putString("PLAYER_NAME", playerName)
-            putString("PHOTO_NAME", photoName)
+        getSharedPreferences(ConstStrings.SHARED_PREFERENCES_INSTANCE, Context.MODE_PRIVATE).edit {
+            putString(ConstStrings.SHARED_PREFERENCES_NAME, playerName)
             commit()
         }
     }

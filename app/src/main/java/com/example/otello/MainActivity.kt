@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import com.example.otello.game.activities.GameActivity
 import com.example.otello.network.ConnType
 import com.example.otello.network.activities.NetworkActivity
+import com.example.otello.utils.ConstStrings
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -39,7 +40,7 @@ class MainActivity : AppCompatActivity() {
             .setMessage("Client or Server")
             .setPositiveButton("Server") { _, _ ->
                 val it = Intent(this, NetworkActivity::class.java)
-                it.putExtra("type", ConnType.SERVER.toString())
+                it.putExtra(ConstStrings.INTENT_CONN_TYPE, ConnType.SERVER.toString())
                 startActivity(it)
             }
             .setNegativeButton("Client") { _, _ ->
@@ -70,8 +71,8 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "Error in IP inserted", Toast.LENGTH_LONG).show()
                 } else {
                     val it = Intent(this, NetworkActivity::class.java)
-                    it.putExtra("IP", ip.toString())
-                    it.putExtra("type", ConnType.CLIENT.toString())
+                    it.putExtra(ConstStrings.INTENT_IP_ADDR, ip.toString())
+                    it.putExtra(ConstStrings.INTENT_CONN_TYPE, ConnType.CLIENT.toString())
                     startActivity(it)
                 }
             }
