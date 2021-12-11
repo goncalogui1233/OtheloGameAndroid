@@ -2,7 +2,10 @@ package com.example.otello
 
 import android.content.Context
 import android.content.DialogInterface
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -11,6 +14,7 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.example.otello.photo.PhotoDialog2
+import com.example.otello.utils.OtheloUtils
 import kotlinx.android.synthetic.main.activity_profile.*
 import java.io.File
 
@@ -29,28 +33,28 @@ class ProfileActivity : AppCompatActivity(), DialogInterface.OnDismissListener {
 
         nome_jogador.setText(playerName)
 
-        val imgPath = File(applicationInfo.dataDir + "/pic.jpg")
-        if(imgPath.exists()){
-            val b = BitmapFactory.decodeFile(imgPath.absolutePath)
-            player_image.setImageBitmap(b)
-            player_image.rotation = 90f
-        }
+        setPlayerImage()
 
         btnCamera.setOnClickListener {
             val fr = PhotoDialog2()
-            fr.show(supportFragmentManager, "JJJ")
+            fr.show(supportFragmentManager, "PhotoDialog")
+        }
+    }
+
+    private fun setPlayerImage() {
+        val imgPath = File(applicationContext.filesDir.toString() + "/photo.jpg")
+        if(imgPath.exists()){
+            val b = BitmapFactory.decodeFile(imgPath.absolutePath)
+            val rotation = OtheloUtils.rotateBitmap(imgPath.absolutePath)
+
+            val bit = Bitmap.createBitmap(b, 0,0, b.width, b.height, rotation, true)
+
+            player_image.setImageBitmap(bit)
         }
     }
 
     override fun onDismiss(dialogInt: DialogInterface?) {
-
-        val imgPath = File(applicationInfo.dataDir + "/pic.jpg")
-
-        if(imgPath.exists()){
-            val b = BitmapFactory.decodeFile(imgPath.absolutePath)
-            player_image.setImageBitmap(b)
-            player_image.rotation = 90f
-        }
+        setPlayerImage()
     }
 
     private fun readFromSharedPreferences() {
