@@ -14,6 +14,8 @@ object ConstStrings {
     const val PLAYER_INFO_PHOTO = "Foto"
     const val PLAYER_INFO_RESPONSE = "PInfoResponse"
     const val PLAYER_INFO_RESPONSE_VALID = "PInfoValid"
+    const val PLAYER_INFO_RESPONSE_ACCEPTED = "Accepted"
+    const val PLAYER_INFO_TOO_MANY_PLAYERS = "LobbyFull"
 
     /**NetworkActivity Consts*/
     const val INTENT_CONN_TYPE = "ConnectType"

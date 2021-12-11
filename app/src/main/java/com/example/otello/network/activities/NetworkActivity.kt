@@ -81,6 +81,10 @@ class NetworkActivity : AppCompatActivity() {
             }
             LobbyStates.WAITING_START -> infos.text = "Waiting for server to start game"
             LobbyStates.SENDING_INFO -> infos.text = "Sending player name and photo to server..."
+            LobbyStates.TOO_MANY_PLAYERS -> {
+                Toast.makeText(this, "You cannot join game, lobby is full", Toast.LENGTH_SHORT).show()
+                finish()
+            }
         }
     }
 

@@ -2,8 +2,6 @@ package com.example.otello.network.viewmodel
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.media.Image
 import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
@@ -14,7 +12,6 @@ import com.example.otello.network.manager.NetworkManager
 import com.example.otello.utils.ConstStrings
 import org.json.JSONObject
 import java.io.BufferedReader
-import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -84,16 +81,27 @@ class NetworkVM : ViewModel(){
 
                 when(json.getString(ConstStrings.TYPE)){
                     ConstStrings.PLAYER_INFO -> {
-                        player.name = json.optString(ConstStrings.PLAYER_INFO_NOME)
-                        val bytePhoto = Base64.decode(json.optString(ConstStrings.PLAYER_INFO_PHOTO), Base64.URL_SAFE)
-                        player.photo = BitmapFactory.decodeByteArray(bytePhoto, 0, bytePhoto.size)
+                        if(clientsConnected.value!! <= 3) {
+                            player.name = json.optString(ConstStrings.PLAYER_INFO_NOME)
 
-                        player.photo = Bitmap.createBitmap(player.photo!!, 0,0, player.photo!!.width, player.photo!!.height, null, true)
+                            val bytePhoto = Base64.decode(json.optString(ConstStrings.PLAYER_INFO_PHOTO), Base64.URL_SAFE)
+                            player.photo = BitmapFactory.decodeByteArray(bytePhoto, 0, bytePhoto.size)
+                            player.photo = Bitmap.createBitmap(player.photo!!, 0, 0, player.photo!!.width, player.photo!!.height, null, true)
 
-                        val jsonObj = JSONObject()
-                        jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
-                        jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, true)
-                        NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+                            val jsonObj = JSONObject()
+                            jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
+                            jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_RESPONSE_ACCEPTED)
+                            NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+                        }
+                        else {
+                            val jsonObj = JSONObject()
+                            jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
+                            jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_TOO_MANY_PLAYERS)
+                            NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+                            clientsConnected.postValue(clientsConnected.value!! - 1)
+                            jogadores.remove(player)
+                            return@thread
+                        }
                     }
 
                     ConstStrings.LEAVE_GAME -> {
@@ -172,8 +180,11 @@ class NetworkVM : ViewModel(){
                         return@thread
                     }
                     ConstStrings.PLAYER_INFO_RESPONSE -> {
-                        if(json.optBoolean(ConstStrings.PLAYER_INFO_RESPONSE_VALID)) {
+                        if(json.optString(ConstStrings.PLAYER_INFO_RESPONSE_VALID) == ConstStrings.PLAYER_INFO_RESPONSE_ACCEPTED) {
                             infos.postValue(LobbyStates.WAITING_START)
+                        }
+                        else {
+                            infos.postValue(LobbyStates.TOO_MANY_PLAYERS)
                         }
                     }
                 }
