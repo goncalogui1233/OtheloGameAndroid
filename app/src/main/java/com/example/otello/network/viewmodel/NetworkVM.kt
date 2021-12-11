@@ -85,8 +85,10 @@ class NetworkVM : ViewModel(){
                             player.name = json.optString(ConstStrings.PLAYER_INFO_NOME)
 
                             val bytePhoto = Base64.decode(json.optString(ConstStrings.PLAYER_INFO_PHOTO), Base64.URL_SAFE)
-                            player.photo = BitmapFactory.decodeByteArray(bytePhoto, 0, bytePhoto.size)
-                            player.photo = Bitmap.createBitmap(player.photo!!, 0, 0, player.photo!!.width, player.photo!!.height, null, true)
+                            val rawBitmap = BitmapFactory.decodeByteArray(bytePhoto, 0, bytePhoto.size)
+                            if(rawBitmap != null) {
+                                player.photo = Bitmap.createBitmap(rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, null, true)
+                            }
 
                             val jsonObj = JSONObject()
                             jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)

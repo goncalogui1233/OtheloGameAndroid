@@ -52,15 +52,18 @@ class NetworkActivity : AppCompatActivity() {
         }
         else {
             val connIp = intent.getStringExtra(ConstStrings.INTENT_IP_ADDR)
+            var encodedImage : String = ""
 
             //Conversão da imagem para a enviar pelo socket
-            val bm = BitmapFactory.decodeFile(playerPhotoPath)
-            val rotation = OtheloUtils.rotateBitmap(playerPhotoPath)
-            val realBitmap = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height, rotation, true)
+            if(playerPhotoPath != "") {
+                val bm = BitmapFactory.decodeFile(playerPhotoPath)
+                val rotation = OtheloUtils.rotateBitmap(playerPhotoPath)
+                val realBitmap = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height, rotation, true)
 
-            val baos = ByteArrayOutputStream()
-            realBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos) // bm is the bitmap object
-            val encodedImage = Base64.encodeToString(baos.toByteArray(), Base64.URL_SAFE)
+                val baos = ByteArrayOutputStream()
+                realBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos) // bm is the bitmap object
+                encodedImage = Base64.encodeToString(baos.toByteArray(), Base64.URL_SAFE)
+            }
 
             networkVM!!.initClient(connIp!!, playerName, encodedImage)
             ipTextView.text = connIp
