@@ -1,5 +1,7 @@
 package com.example.otello.photo
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,6 +13,7 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.example.otello.R
@@ -32,7 +35,7 @@ class PhotoDialog2 : DialogFragment() {
 
         directory = requireActivity().applicationContext.filesDir.toString()
 
-        //permission
+        askPermissions()
 
         view.btnTakePhoto.setOnClickListener {
             takePhoto()
@@ -45,17 +48,38 @@ class PhotoDialog2 : DialogFragment() {
         return view
     }
 
+    private val cameraRequestCode = 1290
+
+    private fun askPermissions() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED){
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.CAMERA), cameraRequestCode)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when(requestCode) {
+            cameraRequestCode -> {
+                if (!(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(requireContext(), "Unable to access camera", Toast.LENGTH_SHORT).show()
+                    dismiss()
+                }
+            }
+
+            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
 
-        val file = File(directory + "/photo.jpg")
+        val file = File("$directory/photo.jpg")
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
 
         imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(requireContext()),
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                Toast.makeText(requireContext(), "Photo Saved - ${directory + "photo.jpg"}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Photo Saved - ${directory + "/photo.jpg"}", Toast.LENGTH_SHORT).show()
             }
 
             override fun onError(exception: ImageCaptureException) {
