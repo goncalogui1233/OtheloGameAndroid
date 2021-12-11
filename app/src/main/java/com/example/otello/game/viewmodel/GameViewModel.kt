@@ -15,8 +15,8 @@ class GameViewModel : ViewModel(){
         gameModel.board.value = Array(boardSize) { IntArray(boardSize)}
         gameModel.boardDimensions.value = boardDimen
 
-        for(i in 0 until numPlayers)
-            gameModel.numJogadores.value?.add(Jogador(i+1))
+       // for(i in 0 until numPlayers)
+       //     gameModel.numJogadores.value?.add(Jogador(i+1, "kkk"))
 
         //Organize board when numJogadores = 2
         if(gameModel.numJogadores.value?.size == 2) {

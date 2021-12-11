@@ -1,12 +1,18 @@
 package com.example.otello.game.model
 
+import android.graphics.Bitmap
+import java.net.Socket
+
 class Jogador {
 
     val id : Int
+    var name : String = ""
     var bombPiece : Boolean
     var pieceChange : Boolean
     var hadMoves : Boolean
     var score : Int = 0
+    var photo : Bitmap? = null
+    var socket : Socket? = null
 
     constructor(id : Int) {
         this.id = id

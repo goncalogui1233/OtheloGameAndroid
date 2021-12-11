@@ -1,60 +1,95 @@
 package com.example.otello.network.activities
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.util.Base64
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
 import com.example.otello.network.ConnType
+import com.example.otello.network.LobbyStates
 import com.example.otello.network.viewmodel.NetworkVM
+import com.example.otello.utils.OtheloUtils
 import kotlinx.android.synthetic.main.activity_network.*
+import java.io.ByteArrayOutputStream
 
 
 class NetworkActivity : AppCompatActivity() {
 
     var networkVM : NetworkVM? = null
-    var ipAddr : String = ""
+    var connType : ConnType? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_network)
 
         networkVM = ViewModelProvider(this).get(NetworkVM::class.java)
+        connType = ConnType.valueOf(intent.getStringExtra("type").toString())
 
-        if(intent.getStringExtra("type") == ConnType.SERVER.toString()) {
+        val pref = getSharedPreferences("ProfileInfo", Context.MODE_PRIVATE)
+        val playerName = pref.getString("PLAYER_NAME", "").toString()
+
+        if(connType == ConnType.SERVER) {
             val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
             val ip = wifiManager.connectionInfo.ipAddress
             val ipAddress = String.format("%d.%d.%d.%d", ip and 0xff, (ip shr 8) and 0xff, (ip shr 16) and 0xff, (ip shr 24) and 0xff)
 
-            networkVM!!.initServer()
+            //Create the bitmap to add to player object
+            val imageBitmap = BitmapFactory.decodeFile(applicationContext.filesDir.toString() + "/photo.jpg")
+            val rotation = OtheloUtils.rotateBitmap(applicationContext.filesDir.toString() + "/photo.jpg")
+            val realBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height, rotation, true)
+
+            networkVM!!.initServer(playerName, realBitmap)
             ipTextView.text = ipAddress
             networkVM!!.clientsConnected.observe(this, observeNumClients)
         }
         else {
             val connIp = intent.getStringExtra("IP")
 
-            networkVM!!.initClient(connIp!!)
+            //Conversão da imagem para a enviar pelo socket
+            val bm = BitmapFactory.decodeFile(applicationContext.filesDir.toString() + "/photo.jpg")
+            val rotation = OtheloUtils.rotateBitmap(applicationContext.filesDir.toString() + "/photo.jpg")
+            val realBitmap = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height, rotation, true)
+
+            val baos = ByteArrayOutputStream()
+            realBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos) // bm is the bitmap object
+            val encodedImage = Base64.encodeToString(baos.toByteArray(), Base64.URL_SAFE)
+
+            networkVM!!.initClient(connIp!!, playerName, encodedImage)
             ipTextView.text = connIp
             networkVM!!.infos.observe(this, obsInsfos)
         }
     }
 
     private val observeNumClients = Observer<Int> {
-
         connClients.text = "Clients: ${it}"
-
     }
 
-    private val obsInsfos = Observer<String> {
-
-        infos.text = it
-
+    private val obsInsfos = Observer<LobbyStates> {
+        when(it) {
+            LobbyStates.GAME_STARTING -> infos.text = "Game is starting"
+            LobbyStates.GAME_STOPPED -> {
+                Toast.makeText(this, "Server Stopped the game", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            LobbyStates.WAITING_START -> infos.text = "Waiting for server to start game"
+            LobbyStates.SENDING_INFO -> infos.text = "Sending player name and photo to server..."
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        networkVM!!.killServer()
+        if(connType == ConnType.SERVER) {
+            networkVM!!.killServer()
+        }
+        else {
+            networkVM!!.clientLeave()
+        }
     }
 
 
