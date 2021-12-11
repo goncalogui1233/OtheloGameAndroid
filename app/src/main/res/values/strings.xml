@@ -13,7 +13,22 @@
     <string name="noChangePiecePossible">Bomb Special activated, deactivate it to use this one</string>
     <string name="finalMessage">Player [X] wins with [Y] points</string>
     <string name="endGame">End Game</string>
-    <string name="ok">OK</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="onlineMode">Online Mode</string>
+    <string name="clientServer">Client or Server?</string>
+    <string name="server">Server</string>
+    <string name="client">Client</string>
+    <string name="ipAddress">IP Address</string>
+    <string name="insertIP">Insert Server IP Address</string>
+    <string name="errorIP">Error in IP inserted</string>
+
+    <string name="gameStarting">Game is starting</string>
+    <string name="serverStopGame">"Server Stopped the game"</string>
+    <string name="waitingStart">"Waiting for server to start game"</string>
+    <string name="sendingInfo">"Sending player name and photo to server..."</string>
+    <string name="lobbyFull">"You cannot join game, lobby is full"</string>
+    <string name="playerNumber">Number of players: [X]</string>
+
 
 
 </resources>

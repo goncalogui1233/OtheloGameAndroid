@@ -72,20 +72,20 @@ class NetworkActivity : AppCompatActivity() {
     }
 
     private val observeNumClients = Observer<Int> {
-        connClients.text = "Clients: ${it}"
+        connClients.text = resources.getString(R.string.playerNumber).replace("[X]", it.toString())
     }
 
     private val obsInsfos = Observer<LobbyStates> {
         when(it) {
-            LobbyStates.GAME_STARTING -> infos.text = "Game is starting"
+            LobbyStates.GAME_STARTING -> infos.text = resources.getString(R.string.gameStarting)
             LobbyStates.GAME_STOPPED -> {
-                Toast.makeText(this, "Server Stopped the game", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, resources.getString(R.string.serverStopGame), Toast.LENGTH_SHORT).show()
                 finish()
             }
-            LobbyStates.WAITING_START -> infos.text = "Waiting for server to start game"
-            LobbyStates.SENDING_INFO -> infos.text = "Sending player name and photo to server..."
+            LobbyStates.WAITING_START -> infos.text = resources.getString(R.string.waitingStart)
+            LobbyStates.SENDING_INFO -> infos.text = resources.getString(R.string.sendingInfo)
             LobbyStates.TOO_MANY_PLAYERS -> {
-                Toast.makeText(this, "You cannot join game, lobby is full", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, resources.getString(R.string.lobbyFull), Toast.LENGTH_SHORT).show()
                 finish()
             }
         }

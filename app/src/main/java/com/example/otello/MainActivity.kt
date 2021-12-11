@@ -36,14 +36,14 @@ class MainActivity : AppCompatActivity() {
 
     fun alertDialogOnline(){
         AlertDialog.Builder(this)
-            .setTitle("Online Mode")
-            .setMessage("Client or Server")
-            .setPositiveButton("Server") { _, _ ->
+            .setTitle(resources.getString(R.string.onlineMode))
+            .setMessage(resources.getString(R.string.clientServer))
+            .setPositiveButton(resources.getString(R.string.server)) { _, _ ->
                 val it = Intent(this, NetworkActivity::class.java)
                 it.putExtra(ConstStrings.INTENT_CONN_TYPE, ConnType.SERVER.toString())
                 startActivity(it)
             }
-            .setNegativeButton("Client") { _, _ ->
+            .setNegativeButton(resources.getString(R.string.client)) { _, _ ->
                 insertIpDialog()
             }
             .show()
@@ -62,13 +62,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("IP Address")
-            .setMessage("Insert Server IP Address")
+            .setTitle(resources.getString(R.string.ipAddress))
+            .setMessage(resources.getString(R.string.insertIP))
             .setView(edtBox)
-            .setPositiveButton("OK") { _, _ ->
+            .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                 val ip = edtBox.text
                 if (ip.isEmpty() || !Patterns.IP_ADDRESS.matcher(ip).matches()) {
-                    Toast.makeText(this, "Error in IP inserted", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, resources.getString(R.string.errorIP), Toast.LENGTH_LONG).show()
                 } else {
                     val it = Intent(this, NetworkActivity::class.java)
                     it.putExtra(ConstStrings.INTENT_IP_ADDR, ip.toString())

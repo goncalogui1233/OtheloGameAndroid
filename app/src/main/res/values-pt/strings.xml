@@ -4,4 +4,25 @@
     <string name="title_activity_game">GameActivity</string>
     <string name="player">Jogador: [X]</string>
     <string name="twoPlayerScore">Jogador 1: [A] pontos - Jogador 2: [B] pontos</string>
+    <string name="bombSpecial">Especial de Bomba</string>
+    <string name="errorIP">Erro no endereço IP inserido</string>
+    <string name="insertIP">Insira o endereço IP do servidor</string>
+    <string name="ipAddress">Endereço IP</string>
+    <string name="client">Cliente</string>
+    <string name="server">Servidor</string>
+    <string name="clientServer">Cliente ou Servidor?</string>
+    <string name="onlineMode">Modo Online</string>
+    <string name="endGame">Fim do Jogo</string>
+    <string name="finalMessage">Jogador [X] venceu com [Y] pontos</string>
+    <string name="noChangePiecePossible">Especial de bomba ativo, desative para usar este</string>
+    <string name="changePieceSpecial">Especial de Alteração de Peça</string>
+    <string name="noBombPossible">Especial de Alteração de Peça ativo, desative-o para usar este</string>
+    <string name="deactivated">desativado</string>
+    <string name="activated">ativado</string>
+    <string name="gameStarting">O jogo está a começar</string>
+    <string name="serverStopGame">O servidor parou o jogo</string>
+    <string name="waitingStart">Esperando pelo começo do jogo</string>
+    <string name="sendingInfo">Enviando informações do jogador</string>
+    <string name="lobbyFull">Não te podes juntar, o lobby está cheio</string>
+    <string name="playerNumber">Número de jogadores: [X]</string>
 </resources>
