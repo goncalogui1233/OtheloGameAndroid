@@ -5,10 +5,19 @@ import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
+import com.example.otello.network.manager.NetworkManager
+import com.example.otello.utils.ConstStrings
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.lang.Exception
+import java.net.Socket
+import kotlin.concurrent.thread
 
 class GameViewModel : ViewModel(){
     
-    val gameModel = GameModel()
+    val gameModel = GameModel
 
     fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
@@ -43,6 +52,12 @@ class GameViewModel : ViewModel(){
         }
 
         alterarPontuacoes(gameModel.board.value!!)
+
+        for(p in gameModel.numJogadores.value!!) {
+            if(p.socket != null) {
+                receiveInfoFromClients(p.socket!!)
+            }
+        }
     }
 
 
@@ -606,7 +621,42 @@ class GameViewModel : ViewModel(){
                 }
                 break
             }
+        }
+    }
 
+    fun receiveInfoFromClients(socket: Socket) {
+        thread {
+            while (true) {
+                var str = ""
+                try {
+                    str = BufferedReader(InputStreamReader(socket.getInputStream())).readLine()
+                } catch (e: Exception) { }
+
+                val json = JSONObject(str)
+                when (json.optString(ConstStrings.TYPE)) {
+                    "WantData" -> {
+                        //Send board size and positions filled to clients
+                        val jsonData = JSONObject()
+                        jsonData.put("Type", "InitialInfo")
+                        jsonData.put("boardDimension", gameModel.boardDimensions.value!!)
+
+                        val posJson = JSONArray()
+                        for(i in 0 until gameModel.boardDimensions.value!!) {
+                            for (j in 0 until gameModel.boardDimensions.value!!) {
+                                if(gameModel.board.value!![i][j] != 0) {
+                                    val jsonObject = JSONObject()
+                                    jsonObject.put("linha", i)
+                                    jsonObject.put("coluna", i)
+                                    jsonObject.put("value", gameModel.board.value!![i][j])
+                                    posJson.put(jsonObject)
+                                }
+                            }
+                        }
+                        jsonData.put("positions", posJson)
+                        NetworkManager.sendInfo(socket, jsonData.toString())
+                    }
+                }
+            }
         }
     }
 

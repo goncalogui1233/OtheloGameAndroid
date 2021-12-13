@@ -2,7 +2,7 @@ package com.example.otello.game.model
 
 import androidx.lifecycle.MutableLiveData
 
-class GameModel {
+object GameModel {
 
     val board = MutableLiveData<Array<IntArray>>()
     val playerTurn = MutableLiveData<Jogador>()

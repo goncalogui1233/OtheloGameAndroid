@@ -22,9 +22,18 @@ class GridAdapter : BaseAdapter {
         gridContent = content
     }
 
+    constructor(c : Context, boardSize : Int) {
+        context = c
+        gridContent = Array(boardSize*boardSize) { IntArray(boardSize)}
+    }
+
     fun setBoardContent(array: Array<IntArray>){
         gridContent = array
         notifyDataSetChanged()
+    }
+
+    fun setPositionBoard(line : Int, column : Int, value : Int) {
+        gridContent!![line][column] = value
     }
 
     fun setPlayerMoves(array: ArrayList<Posicoes>){

@@ -10,7 +10,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.otello.game.activities.GameActivity
-import com.example.otello.network.ConnType
+import com.example.otello.network.model.ConnType
 import com.example.otello.network.activities.NetworkActivity
 import com.example.otello.utils.ConstStrings
 import kotlinx.android.synthetic.main.activity_main.*

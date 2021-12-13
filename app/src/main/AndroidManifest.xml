@@ -17,12 +17,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Otello">
-        <activity android:name=".network.activities.NetworkActivity"></activity>
-
+        <activity android:name=".network.activities.NetworkActivity"
+            android:label="@string/title_lobby"/>
         <activity android:name=".ProfileActivity" />
         <activity
             android:name=".game.activities.GameActivity"
             android:label="@string/title_activity_game" />
+        <activity
+            android:name=".game.activities.GameOnlineActivity"/>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

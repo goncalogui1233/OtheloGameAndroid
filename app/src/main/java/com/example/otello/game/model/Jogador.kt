@@ -1,9 +1,10 @@
 package com.example.otello.game.model
 
 import android.graphics.Bitmap
+import java.io.Serializable
 import java.net.Socket
 
-class Jogador {
+class Jogador : Serializable{
 
     val id : Int
     var name : String = ""

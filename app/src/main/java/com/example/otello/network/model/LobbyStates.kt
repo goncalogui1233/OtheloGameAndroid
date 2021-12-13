@@ -1,4 +1,4 @@
-package com.example.otello.network
+package com.example.otello.network.model
 
 enum class LobbyStates {
     GAME_STARTING,

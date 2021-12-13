@@ -7,9 +7,10 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.Jogador
-import com.example.otello.network.LobbyStates
+import com.example.otello.network.model.LobbyStates
 import com.example.otello.network.manager.NetworkManager
 import com.example.otello.utils.ConstStrings
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -29,9 +30,9 @@ class NetworkVM : ViewModel(){
     val infos = MutableLiveData<LobbyStates>()
     val jogadores = arrayListOf<Jogador>()
 
-    private var stopSocket : Boolean = false
-    private var checkClientInfos = false
-    private var checkServerInfos = false
+    var stopSocket : Boolean = false
+    var checkClientInfos = false
+    var checkServerInfos = false
 
     //Server Functions
 
@@ -54,8 +55,8 @@ class NetworkVM : ViewModel(){
                             val p = Jogador(clientsConnected.value!! + 1)
                             p.socket = socket
                             clientsConnected.postValue(clientsConnected.value!! + 1)
-                            informationToServer(p)
                             jogadores.add(p)
+                            informationToServer(p)
                         }
                     } catch (e: SocketException) { }
                 }
@@ -70,51 +71,75 @@ class NetworkVM : ViewModel(){
                 var str = ""
                 try {
                     str = BufferedReader(InputStreamReader(player.socket?.getInputStream())).readLine()
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     Log.i("InfoToServer", "Error in read")
                     jogadores.remove(player)
                     clientsConnected.postValue(clientsConnected.value!! - 1)
                     return@thread
                 }
 
-                val json = JSONObject(str)
+                try {
+                    val json = JSONObject(str)
 
-                when(json.getString(ConstStrings.TYPE)){
-                    ConstStrings.PLAYER_INFO -> {
-                        if(clientsConnected.value!! <= 3) {
-                            player.name = json.optString(ConstStrings.PLAYER_INFO_NOME)
+                    when (json.getString(ConstStrings.TYPE)) {
+                        ConstStrings.PLAYER_INFO -> {
+                            if (clientsConnected.value!! <= 3) {
+                                player.name = json.optString(ConstStrings.PLAYER_INFO_NOME)
 
-                            val bytePhoto = Base64.decode(json.optString(ConstStrings.PLAYER_INFO_PHOTO), Base64.URL_SAFE)
-                            val rawBitmap = BitmapFactory.decodeByteArray(bytePhoto, 0, bytePhoto.size)
-                            if(rawBitmap != null) {
-                                player.photo = Bitmap.createBitmap(rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, null, true)
+                                val bytePhoto = Base64.decode(json.optString(ConstStrings.PLAYER_INFO_PHOTO), Base64.URL_SAFE)
+                                val rawBitmap = BitmapFactory.decodeByteArray(bytePhoto, 0, bytePhoto.size)
+                                if (rawBitmap != null) {
+                                    player.photo = Bitmap.createBitmap(rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, null, true)
+                                }
+
+                                val jsonObj = JSONObject()
+                                jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
+                                jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_RESPONSE_ACCEPTED)
+                                NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+                            } else {
+                                val jsonObj = JSONObject()
+                                jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
+                                jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_TOO_MANY_PLAYERS)
+                                NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+                                clientsConnected.postValue(clientsConnected.value!! - 1)
+                                jogadores.remove(player)
+                                return@thread
                             }
-
-                            val jsonObj = JSONObject()
-                            jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
-                            jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_RESPONSE_ACCEPTED)
-                            NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
                         }
-                        else {
-                            val jsonObj = JSONObject()
-                            jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
-                            jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_TOO_MANY_PLAYERS)
-                            NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+
+                        ConstStrings.LEAVE_GAME -> {
                             clientsConnected.postValue(clientsConnected.value!! - 1)
                             jogadores.remove(player)
                             return@thread
                         }
-                    }
 
-                    ConstStrings.LEAVE_GAME -> {
-                        clientsConnected.postValue(clientsConnected.value!! - 1)
-                        jogadores.remove(player)
-                        return@thread
+                        ConstStrings.PLAYER_ENTER_GAME -> {
+                            return@thread
+                        }
                     }
-                }
+                } catch (e : JSONException) {}
             }
         }
 
+    }
+
+    //Server warns every player that the game will start
+    fun startGame() {
+        thread {
+            val json = JSONObject()
+            json.put(ConstStrings.TYPE, ConstStrings.START_GAME)
+
+            for(p in jogadores) {
+                if(p.socket != null) {
+                    NetworkManager.sendInfo(p.socket!!, json.toString())
+                }
+            }
+        }
+    }
+
+    fun stopServerSocket() {
+        stopSocket = true
+        serverSocket?.close()
     }
 
     //Server cancels game
@@ -161,7 +186,7 @@ class NetworkVM : ViewModel(){
 
     //Client receive info from server
     fun informationToClient() {
-        thread {
+       thread {
             while (!checkClientInfos) {
                 var str = ""
                 try {
@@ -206,7 +231,11 @@ class NetworkVM : ViewModel(){
         }
     }
 
-
+    fun clientEnterGame() {
+        val json = JSONObject()
+        json.put(ConstStrings.TYPE, ConstStrings.PLAYER_ENTER_GAME)
+        NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+    }
 
 
 }

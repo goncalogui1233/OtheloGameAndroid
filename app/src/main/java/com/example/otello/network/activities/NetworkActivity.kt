@@ -1,22 +1,29 @@
 package com.example.otello.network.activities
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Base64
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
-import com.example.otello.network.ConnType
-import com.example.otello.network.LobbyStates
+import com.example.otello.game.activities.GameActivity
+import com.example.otello.game.activities.GameOnlineActivity
+import com.example.otello.game.model.GameModel
+import com.example.otello.network.manager.NetworkManager
+import com.example.otello.network.model.ConnType
+import com.example.otello.network.model.LobbyStates
 import com.example.otello.network.viewmodel.NetworkVM
 import com.example.otello.utils.ConstStrings
 import com.example.otello.utils.OtheloUtils
 import kotlinx.android.synthetic.main.activity_network.*
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 
 
@@ -32,6 +39,7 @@ class NetworkActivity : AppCompatActivity() {
         networkVM = ViewModelProvider(this).get(NetworkVM::class.java)
         connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE).toString())
 
+        //Get profile data from Shared Preferences
         val pref = getSharedPreferences(ConstStrings.SHARED_PREFERENCES_INSTANCE, Context.MODE_PRIVATE)
         val playerName = pref.getString(ConstStrings.SHARED_PREFERENCES_NAME, "").toString()
         val playerPhotoPath = pref.getString(ConstStrings.SHARED_PREFERENCES_PHOTO, "").toString()
@@ -49,6 +57,21 @@ class NetworkActivity : AppCompatActivity() {
             networkVM!!.initServer(playerName, realBitmap)
             ipTextView.text = ipAddress
             networkVM!!.clientsConnected.observe(this, observeNumClients)
+
+            btnStartGame.setOnClickListener {
+                btnStartGame.isEnabled = false
+                GameModel.numJogadores.value = networkVM!!.jogadores
+                networkVM!!.checkServerInfos = true
+                networkVM!!.stopServerSocket()
+                networkVM!!.startGame()
+
+                val intent = Intent(this, GameOnlineActivity::class.java)
+                intent.putExtra(ConstStrings.INTENT_CONN_TYPE, connType.toString())
+                intent.putExtra(ConstStrings.INTENT_GAME_MODE, ConstStrings.INTENT_GAME_ONLINE)
+
+                startActivity(intent)
+                finish()
+            }
         }
         else {
             val connIp = intent.getStringExtra(ConstStrings.INTENT_IP_ADDR)
@@ -73,11 +96,29 @@ class NetworkActivity : AppCompatActivity() {
 
     private val observeNumClients = Observer<Int> {
         connClients.text = resources.getString(R.string.playerNumber).replace("[X]", it.toString())
+
+        if(it > 1) {
+            btnStartGame.visibility = View.VISIBLE
+        }
+        else {
+            btnStartGame.visibility = View.GONE
+        }
+
     }
 
     private val obsInsfos = Observer<LobbyStates> {
         when(it) {
-            LobbyStates.GAME_STARTING -> infos.text = resources.getString(R.string.gameStarting)
+            LobbyStates.GAME_STARTING -> {
+                infos.text = resources.getString(R.string.gameStarting)
+                networkVM!!.checkClientInfos = true
+                networkVM!!.clientEnterGame()
+
+                val intent = Intent(this, GameOnlineActivity::class.java)
+                intent.putExtra(ConstStrings.INTENT_CONN_TYPE, connType.toString())
+                intent.putExtra(ConstStrings.INTENT_GAME_MODE, ConstStrings.INTENT_GAME_ONLINE)
+                startActivity(intent)
+                finish()
+            }
             LobbyStates.GAME_STOPPED -> {
                 Toast.makeText(this, resources.getString(R.string.serverStopGame), Toast.LENGTH_SHORT).show()
                 finish()
@@ -93,13 +134,15 @@ class NetworkActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if(connType == ConnType.SERVER) {
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        if (connType == ConnType.SERVER) {
             networkVM!!.killServer()
-        }
-        else {
+        } else {
             networkVM!!.clientLeave()
         }
     }
-
 
 }

@@ -4,16 +4,19 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.PrintStream
 import java.net.Socket
+import kotlin.concurrent.thread
 
 object NetworkManager {
 
     var socketEnt : Socket? = null
 
     fun sendInfo(socket: Socket, info : String) {
-        val printStream = PrintStream(socket.getOutputStream())
+        thread {
+            val printStream = PrintStream(socket.getOutputStream())
 
-        printStream.println(info)
-        printStream.flush()
+            printStream.println(info)
+            printStream.flush()
+        }
     }
 
     fun receiveInfo(socket: Socket) : String {

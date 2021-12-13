@@ -10,6 +10,8 @@ import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
 import com.example.otello.game.viewmodel.GameViewModel
 import com.example.otello.game.model.Jogador
+import com.example.otello.network.model.ConnType
+import com.example.otello.utils.ConstStrings
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_game.*
 import kotlin.random.Random
@@ -20,13 +22,15 @@ class GameActivity : AppCompatActivity() {
     lateinit var v : GameViewModel
     val boardD = 8
     var shouldSeeMoves : Boolean = false
+    var connType : ConnType? = null
+    var gameMode : String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
 
-        //Coloca o número de jogadores existentes
-        //v.numJogadores.value = intent.getIntExtra("num_jogadores", 0)
+        connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE)!!)
+        gameMode = intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)!!
 
         v = ViewModelProvider(this).get(GameViewModel::class.java)
         v.initBoard(boardD * boardD, boardD, 2)
@@ -34,6 +38,9 @@ class GameActivity : AppCompatActivity() {
         v.gameModel.playerTurn.observe(this, observePlayerTurn)
         v.gameModel.playPositions.observe(this, observePlayerMoves)
         v.gameModel.endGame.observe(this, observeEndGame)
+
+
+        //TODO - Se jogo for local, configurar o array dos jogadores
 
         //Setting the Adapter, Dimensions and ClickListener for Grid
         adapter = GridAdapter(this, v.gameModel.board.value!!)
@@ -49,7 +56,6 @@ class GameActivity : AppCompatActivity() {
                     v.changePieceMove()
                     v.gameModel.changePieceArray.clear()
                 }
-
             }
             else {
                 v.updateValue(linha, coluna)
@@ -117,6 +123,7 @@ class GameActivity : AppCompatActivity() {
 
         }
     }
+
 
     private fun sortearJogador(){
         val turn = Random.nextInt(0, v.gameModel.numJogadores.value?.size!!) + 1

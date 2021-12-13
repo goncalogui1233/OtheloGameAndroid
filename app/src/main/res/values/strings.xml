@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Otello</string>
     <string name="title_activity_game">GameActivity</string>
+    <string name="title_lobby">Pre-Game Lobby</string>
     <!-- Strings used for fragments for navigation -->
 
     <string name="player">Player: [X]</string>
