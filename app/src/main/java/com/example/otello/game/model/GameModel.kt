@@ -1,7 +1,6 @@
 package com.example.otello.game.model
 
 import androidx.lifecycle.MutableLiveData
-import com.example.otello.network.model.ConnType
 
 object GameModel {
 

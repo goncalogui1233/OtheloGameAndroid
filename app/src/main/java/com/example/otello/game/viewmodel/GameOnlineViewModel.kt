@@ -63,6 +63,7 @@ class GameOnlineViewModel : ViewModel() {
         if (copyBoard != null && copyBoard[line][column] == 0) {
             //Check if it's possible to put piece in that position
             if (checkIfPossible(line, column)) {
+                var addedPieces = arrayListOf<AddedPosition>()
                 //Coloca posição no board
                 copyBoard[line][column] = gameModel.playerTurn.value?.id!!
 
@@ -71,13 +72,14 @@ class GameOnlineViewModel : ViewModel() {
                 if (gameModel.bombMove.value!!) {
                     newBoard = bombMove(copyBoard, line, column)
                     gameModel.playerTurn.value!!.bombPiece = false
-                    gameModel.bombMove.value = false
+                    gameModel.bombMove.postValue(false)
+
+                    addedPieces = checkNeighbours(line, column)
                 } else {
                     newBoard = changePieces(line, column, copyBoard)
                 }
 
                 //Compara os boards para ver as peças que mudaram
-                val addedPieces = arrayListOf<AddedPosition>()
                 for (i in 0 until gameModel.boardDimensions.value!!) {
                     for (j in 0 until gameModel.boardDimensions.value!!) {
                         if(copyBoard[i][j] != 0) {
@@ -180,9 +182,6 @@ class GameOnlineViewModel : ViewModel() {
         if (line + 1 < GameModel.boardDimensions.value!! && column - 1 >= 0) {
             copyBoard[line + 1][column - 1] = 0
         }
-
-        //Desliga o special no modelo do jogo
-        GameModel.bombMove.value = false
 
         return copyBoard
     }
@@ -522,5 +521,46 @@ class GameOnlineViewModel : ViewModel() {
         }
     }
 
+
+    private fun checkNeighbours(line: Int, column: Int): ArrayList<AddedPosition> {
+
+        val add = arrayListOf<AddedPosition>()
+
+        if(line - 1 >= 0 && column -1 >= 0) {
+            add.add(AddedPosition(line-1, column-1, 0))
+        }
+
+        if(line - 1 >= 0) {
+            add.add(AddedPosition(line - 1, column, 0))
+        }
+
+        if(line - 1 >= 0 && column + 1 < gameModel.boardDimensions.value!!) {
+            add.add(AddedPosition(line-1, column+1, 0))
+        }
+
+        if(column + 1 < gameModel.boardDimensions.value!!) {
+            add.add(AddedPosition(line, column-1, 0))
+        }
+
+        if(line + 1 < gameModel.boardDimensions.value!! && column + 1 < gameModel.boardDimensions.value!!) {
+            add.add(AddedPosition(line+1, column+1, 0))
+        }
+
+        if(line + 1 < gameModel.boardDimensions.value!!) {
+            add.add(AddedPosition(line+1, column, 0))
+        }
+
+        if(line + 1 < gameModel.boardDimensions.value!! && column - 1 >= 0) {
+            add.add(AddedPosition(line+1, column-1, 0))
+        }
+
+        if(column - 1 >= 0) {
+            add.add(AddedPosition(line, column-1, 0))
+        }
+
+        return add
+
+
+    }
 
 }

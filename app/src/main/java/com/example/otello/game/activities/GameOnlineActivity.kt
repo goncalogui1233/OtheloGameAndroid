@@ -17,6 +17,7 @@ import com.example.otello.utils.ConstStrings
 import com.example.otello.utils.OtheloUtils
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_game.*
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -33,6 +34,8 @@ class GameOnlineActivity : AppCompatActivity() {
     var connType : ConnType? = null
     var gameMode : String = ""
     var currPlayerId : Int = -1
+    var changePieceActivated = false
+    var changePieceArray = arrayListOf<Posicoes>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -181,11 +184,27 @@ class GameOnlineActivity : AppCompatActivity() {
             else {
                 if(currPlayerId == NetworkManager.playerId) {
                     val json = JSONObject()
-                    json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)
-                    json.put(ConstStrings.GAME_PIECE_POSITION, JSONObject()
-                            .put(ConstStrings.BOARD_LINE, linha)
-                            .put(ConstStrings.BOARD_COLUMN, coluna))
-                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    if (changePieceActivated) {
+                        changePieceArray.add(Posicoes(linha, coluna))
+                        if (changePieceArray.size == 3) {
+                            val jsonArray = JSONArray()
+                            for(piece in changePieceArray) {
+                                jsonArray.put(JSONObject().put(ConstStrings.BOARD_LINE, piece.linha)
+                                        .put(ConstStrings.BOARD_COLUMN, piece.coluna))
+                            }
+                            changePieceArray.clear()
+                            changePieceActivated = false
+                        }
+                    }
+                    else {
+                        json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)
+                        json.put(ConstStrings.GAME_PIECE_POSITION, JSONObject()
+                                .put(ConstStrings.BOARD_LINE, linha)
+                                .put(ConstStrings.BOARD_COLUMN, coluna))
+                        NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    }
+
+
                 }
             }
         }
@@ -273,6 +292,9 @@ class GameOnlineActivity : AppCompatActivity() {
                     when (json.optString(ConstStrings.TYPE)) {
                         ConstStrings.GAME_INIT_INFOS -> {
                             boardD = json.optInt(ConstStrings.GAME_BOARD_DIMENSION)
+                            val scores = json.optJSONArray(ConstStrings.PLAYERS_SCORES)
+                            val currPlayer = json.optJSONObject(ConstStrings.CURRENT_PLAYER)
+                            currPlayerId = currPlayer.optInt(ConstStrings.PLAYER_ID)
                             runOnUiThread {
                                 setGridView(false)
                                 val posArray = json.optJSONArray(ConstStrings.BOARD_INIT_POSITIONS)
@@ -285,7 +307,6 @@ class GameOnlineActivity : AppCompatActivity() {
                                     }
                                 }
 
-                                val scores = json.optJSONArray(ConstStrings.PLAYERS_SCORES)
                                 if (scores.length() == 2) {
                                     val p1 = scores.getJSONObject(0)
                                     val p2 = scores.getJSONObject(1)
@@ -296,8 +317,6 @@ class GameOnlineActivity : AppCompatActivity() {
                                             .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
                                 }
 
-                                val currPlayer = json.optJSONObject(ConstStrings.CURRENT_PLAYER)
-                                currPlayerId = currPlayer.optInt(ConstStrings.PLAYER_ID)
                                 playerTurnInfo.text = "Jogador: " + currPlayerId.toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
                                 if (!currPlayer.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
                                     playerImageView.visibility = View.VISIBLE
@@ -308,13 +327,15 @@ class GameOnlineActivity : AppCompatActivity() {
 
                         ConstStrings.GAME_BOMB_MOVE_ANSWER -> {
                             when (json.optString(ConstStrings.STATUS)) {
-                                ConstStrings.GAME_BOMB_MOVE_ACTIVATED -> Snackbar.make(gameLayout,
-                                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
-                                        Snackbar.LENGTH_LONG).show()
+                                ConstStrings.GAME_BOMB_MOVE_ACTIVATED -> {
+                                    Snackbar.make(gameLayout, resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
+                                            Snackbar.LENGTH_LONG).show()
+                                }
 
-                                ConstStrings.GAME_BOMB_MOVE_DEACTIVATED -> Snackbar.make(gameLayout,
-                                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
-                                        Snackbar.LENGTH_LONG).show()
+                                ConstStrings.GAME_BOMB_MOVE_DEACTIVATED -> {
+                                    Snackbar.make(gameLayout, resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
+                                            Snackbar.LENGTH_LONG).show()
+                                }
 
                                 ConstStrings.GAME_PIECE_MOVE_IS_ACTIVATED ->  Snackbar.make(gameLayout,
                                         resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
@@ -328,13 +349,17 @@ class GameOnlineActivity : AppCompatActivity() {
 
                         ConstStrings.GAME_PIECE_MOVE_ANSWER -> {
                             when (json.optString(ConstStrings.STATUS)) {
-                                ConstStrings.GAME_PIECE_MOVE_ACTIVATED -> Snackbar.make(gameLayout,
-                                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
-                                        Snackbar.LENGTH_LONG).show()
+                                ConstStrings.GAME_PIECE_MOVE_ACTIVATED -> {
+                                    changePieceActivated = true
+                                    Snackbar.make(gameLayout, resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
+                                            Snackbar.LENGTH_LONG).show()
+                                }
 
-                                ConstStrings.GAME_PIECE_MOVE_DEACTIVATED -> Snackbar.make(gameLayout,
-                                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
-                                        Snackbar.LENGTH_LONG).show()
+                                ConstStrings.GAME_PIECE_MOVE_DEACTIVATED -> {
+                                    changePieceActivated = false
+                                    Snackbar.make(gameLayout, resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
+                                            Snackbar.LENGTH_LONG).show()
+                                }
 
                                 ConstStrings.GAME_BOMB_MOVE_IS_ACTIVATED -> Snackbar.make(gameLayout,
                                         resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
