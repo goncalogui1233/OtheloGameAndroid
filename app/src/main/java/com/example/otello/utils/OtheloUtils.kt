@@ -1,14 +1,19 @@
 package com.example.otello.utils
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+
 
 object OtheloUtils {
 
     /**
      * Function that returns the rotation to be applied to the bitmap
      */
-    fun rotateBitmap(imgPath : String) : Matrix {
+    fun rotateBitmap(imgPath: String) : Matrix {
         val exifInterface = ExifInterface(imgPath)
         val orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
         val m = Matrix()
@@ -21,5 +26,19 @@ object OtheloUtils {
 
         return m
     }
+
+    fun getStringFromBitmap(bitmap: Bitmap) : String {
+        val byteArrayBitmapStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100,
+                byteArrayBitmapStream)
+        val b: ByteArray = byteArrayBitmapStream.toByteArray()
+        return Base64.encodeToString(b, Base64.URL_SAFE)
+    }
+
+    fun getBitmapFromString(bitmap: String) : Bitmap {
+        val decodedString: ByteArray = Base64.decode(bitmap, Base64.URL_SAFE)
+        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+    }
+
 
 }

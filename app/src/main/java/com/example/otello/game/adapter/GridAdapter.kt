@@ -33,7 +33,10 @@ class GridAdapter : BaseAdapter {
     }
 
     fun setPositionBoard(line : Int, column : Int, value : Int) {
-        gridContent!![line][column] = value
+        if(gridContent!![line][column] != value) {
+            gridContent!![line][column] = value
+            notifyDataSetChanged()
+        }
     }
 
     fun setPlayerMoves(array: ArrayList<Posicoes>){

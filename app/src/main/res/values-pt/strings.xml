@@ -25,4 +25,6 @@
     <string name="sendingInfo">Enviando informações do jogador</string>
     <string name="lobbyFull">Não te podes juntar, o lobby está cheio</string>
     <string name="playerNumber">Número de jogadores: [X]</string>
+    <string name="noBombMoveAgain">Não pode ativar o special de Bomba novamente</string>
+    <string name="noPieceMoveAgain">Não pode ativar o special de mudar peças novamente</string>
 </resources>

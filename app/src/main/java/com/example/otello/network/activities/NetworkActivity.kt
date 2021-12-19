@@ -113,6 +113,9 @@ class NetworkActivity : AppCompatActivity() {
                 networkVM!!.checkClientInfos = true
                 networkVM!!.clientEnterGame()
 
+                //TODO -> Remove this sleep...
+                Thread.sleep(2000)
+
                 val intent = Intent(this, GameOnlineActivity::class.java)
                 intent.putExtra(ConstStrings.INTENT_CONN_TYPE, connType.toString())
                 intent.putExtra(ConstStrings.INTENT_GAME_MODE, ConstStrings.INTENT_GAME_ONLINE)

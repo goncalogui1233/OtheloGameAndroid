@@ -1,6 +1,7 @@
 package com.example.otello.game.model
 
 import androidx.lifecycle.MutableLiveData
+import com.example.otello.network.model.ConnType
 
 object GameModel {
 
@@ -15,5 +16,12 @@ object GameModel {
     var changePiecesMove = MutableLiveData(false)
 
     val changePieceArray = arrayListOf<Posicoes>()
+    val gameType = MutableLiveData<ConnType>()
+
+    var addedPieces = arrayListOf<AddedPosition>()
+
+    /**
+     * Functions
+     */
 
 }

@@ -6,6 +6,7 @@
 
     <string name="player">Player: [X]</string>
     <string name="twoPlayerScore">Player 1: [A] points - Player 2: [B] points</string>
+    <string name="twoPlayerScoree">Player [1]: [A] points - Player [2]: [B] points</string>
     <string name="activated"> activated</string>
     <string name="deactivated"> deactivated</string>
     <string name="bombSpecial">Bomb Special </string>
@@ -29,6 +30,9 @@
     <string name="sendingInfo">"Sending player name and photo to server..."</string>
     <string name="lobbyFull">"You cannot join game, lobby is full"</string>
     <string name="playerNumber">Number of players: [X]</string>
+
+    <string name="noBombMoveAgain">You cannot activate the bomb move again</string>
+    <string name="noPieceMoveAgain">You cannot activate the change piece move again</string>
 
 
 

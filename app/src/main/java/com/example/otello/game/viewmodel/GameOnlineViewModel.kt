@@ -1,6 +1,7 @@
 package com.example.otello.game.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.example.otello.game.model.AddedPosition
 import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
@@ -16,26 +17,23 @@ import java.lang.Exception
 import java.net.Socket
 import kotlin.concurrent.thread
 
-class GameViewModel : ViewModel(){
-    
+class GameOnlineViewModel : ViewModel() {
+
     val gameModel = GameModel
 
-    fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
+    fun initBoard(boardSize: Int, boardDimen: Int, numPlayers: Int) {
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
-        gameModel.board.value = Array(boardSize) { IntArray(boardSize)}
+        gameModel.board.value = Array(boardSize) { IntArray(boardSize) }
         gameModel.boardDimensions.value = boardDimen
 
-        for(i in 0 until numPlayers)
-            gameModel.numJogadores.value?.add(Jogador(i+1))
-
         //Organize board when numJogadores = 2
-        if(gameModel.numJogadores.value?.size == 2) {
+        if (gameModel.numJogadores.value?.size == 2) {
             gameModel.board.value!![3][3] = 1
             gameModel.board.value!![3][4] = 2
             gameModel.board.value!![4][3] = 2
             gameModel.board.value!![4][4] = 1
         } //Organize board when numJogadores = 3
-        else if(gameModel.numJogadores.value?.size == 3){
+        else if (gameModel.numJogadores.value?.size == 3) {
             gameModel.board.value!![2][4] = 1
             gameModel.board.value!![2][5] = 2
             gameModel.board.value!![3][4] = 2
@@ -59,82 +57,90 @@ class GameViewModel : ViewModel(){
     /**
      * Função que insere uma nova peça no tabuleiro
      */
-    fun updateValue(line : Int, column : Int) {
+    fun updateValue(line: Int, column: Int) {
         val copyBoard = gameModel.board.value
 
-        if(copyBoard != null && copyBoard[line][column] == 0){
+        if (copyBoard != null && copyBoard[line][column] == 0) {
             //Check if it's possible to put piece in that position
-            if(checkIfPossible(line, column)) {
+            if (checkIfPossible(line, column)) {
                 //Coloca posição no board
                 copyBoard[line][column] = gameModel.playerTurn.value?.id!!
 
                 //Ver todas as peças e muda-las
-                val newBoard : Array<IntArray>
-                if(gameModel.bombMove.value!!){
+                val newBoard: Array<IntArray>
+                if (gameModel.bombMove.value!!) {
                     newBoard = bombMove(copyBoard, line, column)
-                    gameModel.playerTurn.value?.bombPiece = false
+                    gameModel.playerTurn.value!!.bombPiece = false
                     gameModel.bombMove.value = false
-                }
-                else{
+                } else {
                     newBoard = changePieces(line, column, copyBoard)
+                }
+
+                //Compara os boards para ver as peças que mudaram
+                gameModel.addedPieces = arrayListOf()
+                for (i in 0 until gameModel.boardDimensions.value!!) {
+                    for (j in 0 until gameModel.boardDimensions.value!!) {
+                        if(copyBoard[i][j] != 0) {
+                            gameModel.addedPieces.add(AddedPosition(i,j,copyBoard[i][j]))
+                        }
+                    }
                 }
 
                 //Alterar as pontuações dos jogadores
                 alterarPontuacoes(newBoard)
 
                 //Atualizar o board
-                gameModel.board.value = newBoard
+                gameModel.board.postValue(newBoard)
 
                 //Verificar se podemos continuar o jogo
                 estadoJogo(newBoard)
 
                 //Mudar de jogador
-                changePlayer()
-
+                gameModel.playerTurn.postValue(checkNextPlayer())
             }
         }
     }
 
-    fun bombMove(board: Array<IntArray>, line : Int, column: Int) : Array<IntArray>{
+    fun bombMove(board: Array<IntArray>, line: Int, column: Int): Array<IntArray> {
         val copyBoard = board
 
         //Left
-        if(column - 1 >= 0){
-            copyBoard[line][column-1] = 0
+        if (column - 1 >= 0) {
+            copyBoard[line][column - 1] = 0
         }
 
         //Diagonal Top Left
-        if(line - 1 >= 0 && column-1 >= 0){
-            copyBoard[line-1][column-1] = 0
+        if (line - 1 >= 0 && column - 1 >= 0) {
+            copyBoard[line - 1][column - 1] = 0
         }
         //Top
-        if(line - 1 >= 0){
-            copyBoard[line-1][column] = 0
+        if (line - 1 >= 0) {
+            copyBoard[line - 1][column] = 0
         }
 
         //Diagonal Top Right
-        if(line - 1 >= 0 && column + 1 < GameModel.boardDimensions.value!!){
-            copyBoard[line-1][column+1] = 0
+        if (line - 1 >= 0 && column + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line - 1][column + 1] = 0
         }
 
         //Right
-        if(column + 1 < GameModel.boardDimensions.value!!){
-            copyBoard[line][column+1] = 0
+        if (column + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line][column + 1] = 0
         }
 
         //Diagonal Bottom Right
-        if(line + 1 < GameModel.boardDimensions.value!! && column + 1 < GameModel.boardDimensions.value!!){
-            copyBoard[line+1][column+1] = 0
+        if (line + 1 < GameModel.boardDimensions.value!! && column + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line + 1][column + 1] = 0
         }
 
         //Bottom
-        if(line + 1 < GameModel.boardDimensions.value!!){
-            copyBoard[line+1][column] = 0
+        if (line + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line + 1][column] = 0
         }
 
         //Diagonal Bottom Left
-        if(line + 1 < GameModel.boardDimensions.value!! && column - 1 >= 0){
-            copyBoard[line+1][column-1] = 0
+        if (line + 1 < GameModel.boardDimensions.value!! && column - 1 >= 0) {
+            copyBoard[line + 1][column - 1] = 0
         }
 
         //Desliga o special no modelo do jogo
@@ -148,7 +154,7 @@ class GameViewModel : ViewModel(){
      * Position 0 & 1 -> Pieces from the current player
      * Position 2 -> Piece from the other player
      */
-    fun changePieceMove(){
+    fun changePieceMove() {
         val copyBoard = GameModel.board.value!!
         val currPlayerPiece = copyBoard[GameModel.changePieceArray[0].linha][GameModel.changePieceArray[0].coluna]
         val otherPlayerPiece = copyBoard[GameModel.changePieceArray[2].linha][GameModel.changePieceArray[2].coluna]
@@ -173,14 +179,14 @@ class GameViewModel : ViewModel(){
         gameModel.board.value = copyBoard
 
         //Mudar de jogador
-        changePlayer()
+        gameModel.playerTurn.postValue(checkNextPlayer())
 
     }
 
-    fun estadoJogo(board: Array<IntArray>){
-        for(i in 0 until gameModel.boardDimensions.value!!){
-            for(j in 0 until gameModel.boardDimensions.value!!){
-                if(board[i][j] == 0){
+    fun estadoJogo(board: Array<IntArray>) {
+        for (i in 0 until gameModel.boardDimensions.value!!) {
+            for (j in 0 until gameModel.boardDimensions.value!!) {
+                if (board[i][j] == 0) {
                     return
                 }
             }
@@ -192,7 +198,7 @@ class GameViewModel : ViewModel(){
      * Após um jogador inserir uma peça no tabuleiro, esta função é chamada para
      * alterar as peças já existentes no tabuleiro
      */
-    fun changePieces(line: Int, column: Int, copyBoard : Array<IntArray>) : Array<IntArray>{
+    fun changePieces(line: Int, column: Int, copyBoard: Array<IntArray>): Array<IntArray> {
 
         //Check Left
         flipLine(copyBoard, line, column, true)
@@ -224,8 +230,8 @@ class GameViewModel : ViewModel(){
     /**
      * Esta função percorre o board para contar o numero de peças de cada jogador
      */
-    fun alterarPontuacoes(board : Array<IntArray>){
-        val pont = arrayListOf(0,0,0)
+    fun alterarPontuacoes(board: Array<IntArray>) {
+        val pont = arrayListOf(0, 0, 0)
 
         for (i in 0 until gameModel.boardDimensions.value!!) {
             for (j in 0 until gameModel.boardDimensions.value!!) {
@@ -237,7 +243,7 @@ class GameViewModel : ViewModel(){
             }
         }
 
-        for(i in 0 until gameModel.numJogadores.value!!.size){
+        for (i in 0 until gameModel.numJogadores.value!!.size) {
             gameModel.numJogadores.value!![i].score = pont[i]
         }
     }
@@ -245,25 +251,22 @@ class GameViewModel : ViewModel(){
     /**
      * Esta função altera o jogador atual e vê quais os locais onde ele pode jogar.
      */
-    fun changePlayer(player: Int = -1) {
+    fun checkNextPlayer(player: Int = -1) : Jogador {
         if (player == -1) {
             if (gameModel.playerTurn.value?.id!! == gameModel.numJogadores.value?.size!!) {
-                gameModel.playerTurn.value = gameModel.numJogadores.value?.get(0)
+                return gameModel.numJogadores.value?.get(0)!!
             } else {
-                gameModel.playerTurn.value = gameModel.numJogadores.
-                value?.get(gameModel.numJogadores.value?.indexOf(gameModel.playerTurn.value!!)?.plus(1)!!)
+                return gameModel.numJogadores.value?.get(gameModel.numJogadores.value?.indexOf(gameModel.playerTurn.value!!)?.plus(1)!!)!!
             }
         } else {
-            gameModel.playerTurn.value = gameModel.numJogadores.value?.get(player-1)
+            return gameModel.numJogadores.value?.get(player - 1)!!
         }
-
-        getPossiblePositions()
     }
 
     /**
      * Baseado no jogador atual, esta função procura um local para o jogador jogar
      */
-    private fun getPossiblePositions(){
+    fun getPossiblePositions() {
         val board = gameModel.board.value
 
         if (board != null) {
@@ -323,9 +326,9 @@ class GameViewModel : ViewModel(){
     /**
      * Função que verifica se o jogador pode inserir peça no local onde clicou
      */
-    private fun checkIfPossible(line: Int, column : Int) : Boolean {
-        for (pos in gameModel.playPositions.value!!){
-            if(line == pos.linha && column == pos.coluna){
+    private fun checkIfPossible(line: Int, column: Int): Boolean {
+        for (pos in gameModel.playPositions.value!!) {
+            if (line == pos.linha && column == pos.coluna) {
                 return true
             }
         }
@@ -335,7 +338,7 @@ class GameViewModel : ViewModel(){
     /**
      * Função que, dada uma linha, procura um local para colocar uma peça
      */
-    private fun searchBoardLine(line : Int, column : Int, checkingLeft : Boolean) : Posicoes?{
+    private fun searchBoardLine(line: Int, column: Int, checkingLeft: Boolean): Posicoes? {
         var col = column
         val board = gameModel.board.value!!
 
@@ -402,12 +405,12 @@ class GameViewModel : ViewModel(){
      * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
      * esquerda ou direita no topo da posição
      */
-    private fun searchBoardDiagonalTop(line : Int, column : Int, checkingTopLeft : Boolean) : Posicoes?{
+    private fun searchBoardDiagonalTop(line: Int, column: Int, checkingTopLeft: Boolean): Posicoes? {
         var lin = line
         var col = column
         val board = gameModel.board.value!!
 
-        while(if(checkingTopLeft) (lin < gameModel.boardDimensions.value!! - 1) && (col < gameModel.boardDimensions.value!! - 1) else (lin < gameModel.boardDimensions.value!! - 1 && col >= 1)){
+        while (if (checkingTopLeft) (lin < gameModel.boardDimensions.value!! - 1) && (col < gameModel.boardDimensions.value!! - 1) else (lin < gameModel.boardDimensions.value!! - 1 && col >= 1)) {
             if (checkingTopLeft) {
                 col++
             } else {
@@ -415,17 +418,16 @@ class GameViewModel : ViewModel(){
             }
             lin++
 
-            if(board[lin][col] == gameModel.playerTurn.value?.id){
-                if(checkingTopLeft){
-                    if ( (line-1)>=0 && (column-1)>=0 && board[line - 1][column - 1] == 0) {
-                        return Posicoes(line-1, column -1)
+            if (board[lin][col] == gameModel.playerTurn.value?.id) {
+                if (checkingTopLeft) {
+                    if ((line - 1) >= 0 && (column - 1) >= 0 && board[line - 1][column - 1] == 0) {
+                        return Posicoes(line - 1, column - 1)
                     } else {
                         return null
                     }
-                }
-                else {
-                    if ((line-1>0 && column + 1 < gameModel.boardDimensions.value!!) && board[line - 1][column + 1] == 0) {
-                        return Posicoes(line-1, column+1)
+                } else {
+                    if ((line - 1 > 0 && column + 1 < gameModel.boardDimensions.value!!) && board[line - 1][column + 1] == 0) {
+                        return Posicoes(line - 1, column + 1)
                     } else {
                         return null
                     }
@@ -439,30 +441,29 @@ class GameViewModel : ViewModel(){
      * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
      * esquerda ou direita no fundo da posição
      */
-    private fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft : Boolean) : Posicoes?{
+    private fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft: Boolean): Posicoes? {
         var lin = line
         var col = column
         val board = gameModel.board.value!!
 
-        while(if(checkingBottomLeft) (lin >= 1 && col < gameModel.boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)){
-            if(checkingBottomLeft)
+        while (if (checkingBottomLeft) (lin >= 1 && col < gameModel.boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)) {
+            if (checkingBottomLeft)
                 col++
             else
                 col--
             lin--
 
-            if(board[lin][col] == gameModel.playerTurn.value?.id){
-                if(checkingBottomLeft){
+            if (board[lin][col] == gameModel.playerTurn.value?.id) {
+                if (checkingBottomLeft) {
                     if ((column - 1 >= 0 && line + 1 < gameModel.boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
-                        return Posicoes(line+1, column-1)
+                        return Posicoes(line + 1, column - 1)
                     } else {
                         return null
                     }
-                }
-                else {
-                    if ((line + 1 < gameModel.boardDimensions.value!! && column +1 < gameModel.boardDimensions.value!! ) &&
+                } else {
+                    if ((line + 1 < gameModel.boardDimensions.value!! && column + 1 < gameModel.boardDimensions.value!!) &&
                             board[line + 1][column + 1] == 0) {
-                        return Posicoes(line+1, column+1)
+                        return Posicoes(line + 1, column + 1)
                     } else {
                         return null
                     }
@@ -506,8 +507,8 @@ class GameViewModel : ViewModel(){
     }
 
     /**
-    * Função que vira todas as peças possíveis numa linha
-    */
+     * Função que vira todas as peças possíveis numa linha
+     */
     private fun flipLine(copyBoard: Array<IntArray>, line: Int, column: Int, flipLeft: Boolean) {
 
         var col = column
@@ -544,8 +545,8 @@ class GameViewModel : ViewModel(){
     }
 
     /**
-    * Função que vira todas as peças possíveis em ambas as diagonais do topo
-    */
+     * Função que vira todas as peças possíveis em ambas as diagonais do topo
+     */
     private fun flipTopDiagonal(copyBoard: Array<IntArray>, line: Int, column: Int, flipDiagonalLeft: Boolean) {
         var lin = line
         var col = column
@@ -619,4 +620,180 @@ class GameViewModel : ViewModel(){
             }
         }
     }
+
+    fun receiveInfoFromClients(socket: Socket) {
+        thread {
+            while (true) {
+                var str = ""
+                try {
+                    str = BufferedReader(InputStreamReader(socket.getInputStream())).readLine()
+                } catch (e: Exception) {
+                    return@thread
+                }
+
+                try {
+                    val json = JSONObject(str)
+                    when (json.optString(ConstStrings.TYPE)) {
+                        ConstStrings.CLIENT_WANT_DATA -> {
+                            //Send board size and positions filled to clients
+                            val jsonData = JSONObject()
+                            jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_INIT_INFOS)
+                            jsonData.put(ConstStrings.GAME_BOARD_DIMENSION, gameModel.boardDimensions.value!!)
+
+                            val posJson = JSONArray()
+                            for (i in 0 until gameModel.boardDimensions.value!!) {
+                                for (j in 0 until gameModel.boardDimensions.value!!) {
+                                    if (gameModel.board.value!![i][j] != 0) {
+                                        val jsonObject = JSONObject()
+                                        jsonObject.put(ConstStrings.BOARD_LINE, i)
+                                        jsonObject.put(ConstStrings.BOARD_COLUMN, j)
+                                        jsonObject.put(ConstStrings.BOARD_POS_VALUE, gameModel.board.value!![i][j])
+                                        posJson.put(jsonObject)
+                                    }
+                                }
+                            }
+                            jsonData.put(ConstStrings.BOARD_INIT_POSITIONS, posJson)
+
+                            //Send Scores
+                            val pontArray = JSONArray()
+                            for (p in gameModel.numJogadores.value!!) {
+                                val jsonPlayer = JSONObject()
+                                jsonPlayer.put(ConstStrings.PLAYER_NAME, p.name)
+                                jsonPlayer.put(ConstStrings.PLAYER_SCORE, p.score)
+                                jsonPlayer.put(ConstStrings.PLAYER_ID, p.id)
+                                pontArray.put(jsonPlayer)
+                            }
+                            jsonData.put(ConstStrings.PLAYERS_SCORES, pontArray)
+
+                            //Send current player to play
+
+                            val currentPlayer = JSONObject()
+                            currentPlayer.put(ConstStrings.PLAYER_ID, gameModel.playerTurn.value!!.id)
+                            currentPlayer.put(ConstStrings.PLAYER_NAME, gameModel.playerTurn.value!!.name)
+                         //   if (gameModel.playerTurn.value!!.photo != null) {
+                         //       currentPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(gameModel.playerTurn.value!!.photo!!))
+                         //   }
+                            jsonData.put(ConstStrings.CURRENT_PLAYER, currentPlayer)
+
+                            NetworkManager.sendInfo(socket, jsonData.toString())
+                        }
+
+                        ConstStrings.GAME_PASS_TURN -> gameModel.playerTurn.postValue(checkNextPlayer())
+
+                        ConstStrings.GAME_BOMB_MOVE_ON -> {
+                            val jsonData = JSONObject()
+                            jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_BOMB_MOVE_ANSWER)
+
+                            if (!gameModel.playerTurn.value!!.bombPiece) {
+                                jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_BOMB_MOVE_WAS_ACTIVATED)
+                            } else {
+                                if (!gameModel.changePiecesMove.value!!) {
+                                    if (!gameModel.bombMove.value!!) {
+                                        gameModel.bombMove.postValue(true)
+                                        jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_BOMB_MOVE_ACTIVATED)
+                                    } else {
+                                        gameModel.bombMove.postValue(false)
+                                        jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_BOMB_MOVE_DEACTIVATED)
+                                    }
+                                } else {
+                                    jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_PIECE_MOVE_IS_ACTIVATED)
+                                }
+                            }
+                            NetworkManager.sendInfo(socket, jsonData.toString())
+                        }
+
+                        ConstStrings.GAME_PIECE_MOVE_ON -> {
+                            val jsonData = JSONObject()
+                            jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PIECE_MOVE_ANSWER)
+
+                            if (!gameModel.playerTurn.value!!.pieceChange) {
+                                //Jogador já ativou uma vez este special...
+                                jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_PIECE_MOVE_WAS_ACTIVATED)
+                            } else {
+                                if (!gameModel.bombMove.value!!) {
+                                    if (!gameModel.changePiecesMove.value!!) {
+                                        //Ativa o special
+                                        gameModel.changePiecesMove.postValue(true)
+                                        jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_PIECE_MOVE_ACTIVATED)
+                                    } else {
+                                        //Desativa o special
+                                        gameModel.changePiecesMove.postValue(false)
+                                        jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_PIECE_MOVE_DEACTIVATED)
+                                    }
+                                } else {
+                                    //O outro special já está ativo
+                                    jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_BOMB_MOVE_IS_ACTIVATED)
+                                }
+                            }
+                            NetworkManager.sendInfo(socket, jsonData.toString())
+                        }
+
+                        ConstStrings.GAME_CHECK_PLACES -> {
+                            val jsonData = JSONObject()
+                            val jsonArray = JSONArray()
+                            for (i in gameModel.playPositions.value!!) {
+                                val jsonObj = JSONObject()
+                                jsonObj.put(ConstStrings.BOARD_LINE, i.linha)
+                                jsonObj.put(ConstStrings.BOARD_COLUMN, i.coluna)
+                                jsonArray.put(jsonObj)
+                            }
+                            jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PLACES_PLAY)
+                            jsonData.put(ConstStrings.GAME_PLACES, jsonArray)
+                            NetworkManager.sendInfo(socket, jsonData.toString())
+                        }
+
+                        ConstStrings.GAME_PLACED_PIECE -> {
+                            val linha = json.optJSONObject(ConstStrings.GAME_PIECE_POSITION)?.optInt(ConstStrings.BOARD_LINE)!!
+                            val coluna = json.optJSONObject(ConstStrings.GAME_PIECE_POSITION)?.optInt(ConstStrings.BOARD_COLUMN)!!
+                            val jsonData = JSONObject()
+                            if (checkIfPossible(linha, coluna)) {
+                                val playerId = gameModel.playerTurn.value!!.id
+                                val player = checkNextPlayer()
+                                updateValue(linha, coluna)
+                                //Sends new position to all players + next player to play
+                                for (i in gameModel.numJogadores.value!!) {
+                                    if (i.socket != null) {
+                                        jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PUT_NEW_PIECE)
+                                        jsonData.put(ConstStrings.GAME_VALID_PIECE, true)
+
+                                        val jsonArray = JSONArray()
+                                        for (added in gameModel.addedPieces) {
+                                            jsonArray.put(JSONObject().put(ConstStrings.BOARD_LINE, added.linha)
+                                                    .put(ConstStrings.BOARD_COLUMN, added.coluna)
+                                                    .put(ConstStrings.BOARD_POS_VALUE, added.value))
+                                        }
+                                        jsonData.put(ConstStrings.GAME_NEW_POSITIONS, jsonArray)
+
+                                        val nextPlayer = JSONObject().put(ConstStrings.PLAYER_ID, player.id)
+                                                .put(ConstStrings.PLAYER_NAME, player.name)
+                                        //if (player.photo != null) {
+                                        //    nextPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(player.photo!!))
+                                        //}
+
+                                        jsonData.put(ConstStrings.GAME_PASS_TURN, nextPlayer)
+                                    }
+                                }
+                            } else {
+                                jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PUT_NEW_PIECE)
+                                jsonData.put(ConstStrings.GAME_VALID_PIECE, false)
+                            }
+
+                            NetworkManager.sendInfo(socket, jsonData.toString())
+                        }
+                    }
+                } catch (e: JSONException) {
+                }
+            }
+        }
+    }
+
+    fun initComunication() {
+        for (p in gameModel.numJogadores.value!!) {
+            if (p.socket != null) {
+                receiveInfoFromClients(p.socket!!)
+            }
+        }
+    }
+
+
 }
