@@ -32,6 +32,7 @@ class GameOnlineActivity : AppCompatActivity() {
     var shouldSeeMoves : Boolean = false
     var connType : ConnType? = null
     var gameMode : String = ""
+    var currPlayerId : Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +70,6 @@ class GameOnlineActivity : AppCompatActivity() {
                     NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
                 }
             }
-
         }
 
         showMovesBtn.setOnClickListener {
@@ -86,30 +86,31 @@ class GameOnlineActivity : AppCompatActivity() {
             //Só ativa o special da bomba caso outro special não esteja ativo
             when(connType) {
                 ConnType.SERVER -> {
-                    if(!v.gameModel.changePiecesMove.value!!) {
-                        if (v.gameModel.bombMove.value!!) {
-                            v.gameModel.bombMove.value = false
+                    if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                        if (!v.gameModel.changePiecesMove.value!!) {
+                            if (v.gameModel.bombMove.value!!) {
+                                v.gameModel.bombMove.value = false
+                                Snackbar.make(gameLayout,
+                                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
+                                        Snackbar.LENGTH_LONG).show()
+                            } else {
+                                v.gameModel.bombMove.value = true
+                                Snackbar.make(gameLayout,
+                                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
+                                        Snackbar.LENGTH_LONG).show()
+                            }
+                        } else {
                             Snackbar.make(gameLayout,
-                                    resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
-                                    Snackbar.LENGTH_LONG).show()
+                                    resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
                         }
-                        else {
-                            v.gameModel.bombMove.value = true
-                            Snackbar.make(gameLayout,
-                                    resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
-                                    Snackbar.LENGTH_LONG).show()
-                        }
-                    }
-                    else {
-                        Snackbar.make(gameLayout,
-                                resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
                     }
                 }
-
                 ConnType.CLIENT -> {
-                    val json = JSONObject()
-                    json.put(ConstStrings.TYPE, ConstStrings.GAME_BOMB_MOVE_ON)
-                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    if(currPlayerId == NetworkManager.playerId) {
+                        val json = JSONObject()
+                        json.put(ConstStrings.TYPE, ConstStrings.GAME_BOMB_MOVE_ON)
+                        NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    }
                 }
             }
 
@@ -118,30 +119,33 @@ class GameOnlineActivity : AppCompatActivity() {
         changePieceBtn.setOnClickListener {
             when(connType) {
                 ConnType.SERVER -> {
-                    if(!v.gameModel.bombMove.value!!) {
-                        if (!v.gameModel.changePiecesMove.value!!) {
-                            v.gameModel.changePiecesMove.value = true
-                            Snackbar.make(gameLayout,
-                                    resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
-                                    Snackbar.LENGTH_LONG).show()
+                    if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                        if (!v.gameModel.bombMove.value!!) {
+                            if (!v.gameModel.changePiecesMove.value!!) {
+                                v.gameModel.changePiecesMove.value = true
+                                Snackbar.make(gameLayout,
+                                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
+                                        Snackbar.LENGTH_LONG).show()
+                            } else {
+                                v.gameModel.changePiecesMove.value = false
+                                v.gameModel.changePieceArray.clear()
+                                Snackbar.make(gameLayout,
+                                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
+                                        Snackbar.LENGTH_LONG).show()
+                            }
                         } else {
-                            v.gameModel.changePiecesMove.value = false
-                            v.gameModel.changePieceArray.clear()
                             Snackbar.make(gameLayout,
-                                    resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
-                                    Snackbar.LENGTH_LONG).show()
+                                    resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
                         }
-                    }
-                    else {
-                        Snackbar.make(gameLayout,
-                                resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
                     }
                 }
 
                 ConnType.CLIENT -> {
-                    val json = JSONObject()
-                    json.put(ConstStrings.TYPE, ConstStrings.GAME_PIECE_MOVE_ON)
-                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    if(currPlayerId == NetworkManager.playerId) {
+                        val json = JSONObject()
+                        json.put(ConstStrings.TYPE, ConstStrings.GAME_PIECE_MOVE_ON)
+                        NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    }
                 }
             }
         }
@@ -162,23 +166,27 @@ class GameOnlineActivity : AppCompatActivity() {
             val coluna = i.rem(8)
 
             if(isServer) {
-                if (v.gameModel.changePiecesMove.value!!) {
-                    v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
-                    if (v.gameModel.changePieceArray.size == 3) {
-                        v.changePieceMove()
-                        v.gameModel.changePieceArray.clear()
+                if (v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                    if (v.gameModel.changePiecesMove.value!!) {
+                        v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
+                        if (v.gameModel.changePieceArray.size == 3) {
+                            v.changePieceMove()
+                            v.gameModel.changePieceArray.clear()
+                        }
+                    } else {
+                        v.updateValue(linha, coluna)
                     }
-                } else {
-                    v.updateValue(linha, coluna)
                 }
             }
             else {
-                val json = JSONObject()
-                json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)
-                json.put(ConstStrings.GAME_PIECE_POSITION, JSONObject()
-                        .put(ConstStrings.BOARD_LINE, linha)
-                        .put(ConstStrings.BOARD_COLUMN, coluna))
-                NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                if(currPlayerId == NetworkManager.playerId) {
+                    val json = JSONObject()
+                    json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)
+                    json.put(ConstStrings.GAME_PIECE_POSITION, JSONObject()
+                            .put(ConstStrings.BOARD_LINE, linha)
+                            .put(ConstStrings.BOARD_COLUMN, coluna))
+                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                }
             }
         }
     }
@@ -276,7 +284,6 @@ class GameOnlineActivity : AppCompatActivity() {
                                                 posi.getInt(ConstStrings.BOARD_POS_VALUE))
                                     }
                                 }
-                                adapter.notifyDataSetChanged()
 
                                 val scores = json.optJSONArray(ConstStrings.PLAYERS_SCORES)
                                 if (scores.length() == 2) {
@@ -290,7 +297,8 @@ class GameOnlineActivity : AppCompatActivity() {
                                 }
 
                                 val currPlayer = json.optJSONObject(ConstStrings.CURRENT_PLAYER)
-                                playerTurnInfo.text = "Jogador: " + currPlayer.optInt(ConstStrings.PLAYER_ID) + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
+                                currPlayerId = currPlayer.optInt(ConstStrings.PLAYER_ID)
+                                playerTurnInfo.text = "Jogador: " + currPlayerId.toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
                                 if (!currPlayer.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
                                     playerImageView.visibility = View.VISIBLE
                                     playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(currPlayer.optString(ConstStrings.PLAYER_PHOTO)))
@@ -339,18 +347,33 @@ class GameOnlineActivity : AppCompatActivity() {
                         ConstStrings.GAME_PUT_NEW_PIECE -> {
                             val newPos = json.optJSONArray(ConstStrings.GAME_NEW_POSITIONS)
                             val currPlayer = json.optJSONObject(ConstStrings.GAME_PASS_TURN)
+                            val scores = json.optJSONArray(ConstStrings.PLAYERS_SCORES)
+                            currPlayerId = currPlayer.optInt(ConstStrings.PLAYER_ID)
+
+                            for(i in 0 until newPos.length()){
+                                adapter.setPositionBoard(newPos.optJSONObject(i).optInt(ConstStrings.BOARD_LINE),
+                                        newPos.optJSONObject(i).optInt(ConstStrings.BOARD_COLUMN),
+                                        newPos.optJSONObject(i).optInt(ConstStrings.BOARD_POS_VALUE))
+                            }
 
                             if(json.optBoolean(ConstStrings.GAME_VALID_PIECE) && newPos != null) {
                                 runOnUiThread {
-                                    for(i in 0 until newPos.length()){
-                                        adapter.setPositionBoard(newPos.optJSONObject(i).optInt(ConstStrings.BOARD_LINE),
-                                                newPos.optJSONObject(i).optInt(ConstStrings.BOARD_COLUMN),
-                                                newPos.optJSONObject(i).optInt(ConstStrings.BOARD_POS_VALUE))
+                                    adapter.notifyDataSetChanged()
+
+                                    if (scores.length() == 2) {
+                                        val p1 = scores.getJSONObject(0)
+                                        val p2 = scores.getJSONObject(1)
+                                        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScoree)
+                                                .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME) ?: p1.optInt(ConstStrings.PLAYER_ID).toString())
+                                                .replace("[A]", p1.optString(ConstStrings.PLAYER_SCORE))
+                                                .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME) ?: p2.optInt(ConstStrings.PLAYER_ID).toString())
+                                                .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
                                     }
+
                                     playerTurnInfo.text = "Jogador: " + currPlayer.optInt(ConstStrings.PLAYER_ID).toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
                                     if (!currPlayer.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
                                         playerImageView.visibility = View.VISIBLE
-                                      //  playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(currPlayer.optString(ConstStrings.PLAYER_PHOTO)))
+                                        playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(currPlayer.optString(ConstStrings.PLAYER_PHOTO)))
                                     }
                                     else {
                                         playerImageView.visibility = View.GONE
@@ -358,9 +381,6 @@ class GameOnlineActivity : AppCompatActivity() {
                                 }
                             }
                         }
-
-
-
                     }
                 }
             }

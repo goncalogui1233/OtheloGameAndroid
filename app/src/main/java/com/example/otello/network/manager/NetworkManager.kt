@@ -21,6 +21,7 @@ import kotlin.concurrent.thread
 object NetworkManager {
 
     var socketEnt : Socket? = null
+    var playerId : Int = -1
 
     fun sendInfo(socket: Socket, info : String) {
         thread {

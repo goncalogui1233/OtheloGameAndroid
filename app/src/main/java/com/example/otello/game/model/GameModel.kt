@@ -16,12 +16,299 @@ object GameModel {
     var changePiecesMove = MutableLiveData(false)
 
     val changePieceArray = arrayListOf<Posicoes>()
-    val gameType = MutableLiveData<ConnType>()
-
-    var addedPieces = arrayListOf<AddedPosition>()
 
     /**
      * Functions
      */
+
+    /**
+     * Função que vira todas as peças possíveis numa columa
+     */
+    fun flipColumn(copyBoard: Array<IntArray>, line: Int, column: Int, flipTop: Boolean) {
+        var lin = line
+        while (if (flipTop) lin >= 1 else lin < boardDimensions.value!! - 1) {
+            if (flipTop) {
+                lin--
+            } else {
+                lin++
+            }
+
+            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
+            if (copyBoard[lin][column] == 0)
+                break
+
+            //Se encontrar uma peça da pessoa que jogou
+            if (copyBoard[lin][column] == playerTurn.value?.id) {
+                while (if (flipTop) lin < line else lin > line) {
+                    //Volta na direção oposta até ao local inicial e,
+                    //por cada posição que passa, altera a atual pela do jogador que jogou
+                    if (flipTop) {
+                        lin++
+                    } else {
+                        lin--
+                    }
+                    copyBoard[lin][column] = playerTurn.value?.id!!
+                }
+                break
+            }
+        }
+    }
+
+    /**
+     * Função que vira todas as peças possíveis numa linha
+     */
+    fun flipLine(copyBoard: Array<IntArray>, line: Int, column: Int, flipLeft: Boolean) {
+
+        var col = column
+
+        while (if (flipLeft) col >= 1 else col < boardDimensions.value!! - 1) {
+
+            if (flipLeft) {
+                col--
+            } else {
+                col++
+            }
+
+            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
+            if (copyBoard[line][col] == 0) {
+                break
+            }
+
+            //Se encontrar uma peça da pessoa que jogou
+            if (copyBoard[line][col] == playerTurn.value?.id) {
+                while (if (flipLeft) col < column else col > column) {
+                    //Volta na direção oposta até ao local inicial e,
+                    //por cada posição que passa, altera a atual pela do jogador que jogou
+                    if (flipLeft) {
+                        col++
+                    } else {
+                        col--
+                    }
+                    copyBoard[line][col] = playerTurn.value?.id!!
+                }
+                break
+            }
+
+        }
+    }
+
+    /**
+     * Função que vira todas as peças possíveis em ambas as diagonais do topo
+     */
+    fun flipTopDiagonal(copyBoard: Array<IntArray>, line: Int, column: Int, flipDiagonalLeft: Boolean) {
+        var lin = line
+        var col = column
+        //Percorrer o board
+        while (if (flipDiagonalLeft) lin >= 1 && col >= 1 else lin >= 1 && col < boardDimensions.value!! - 1) {
+            if (flipDiagonalLeft) {
+                lin--
+                col--
+            } else {
+                lin--
+                col++
+            }
+
+            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
+            if (copyBoard[lin][col] == 0)
+                break
+
+            //Se encontrar uma peça da pessoa que jogou
+            if (copyBoard[lin][col] == playerTurn.value?.id) {
+                while (if (flipDiagonalLeft) lin < line && col < column else lin < line && col > column) {
+                    //Volta na direção oposta até ao local inicial e,
+                    //por cada posição que passa, altera a atual pela do jogador que jogou
+                    if (flipDiagonalLeft) {
+                        lin++
+                        col++
+                    } else {
+                        lin++
+                        col--
+                    }
+                    copyBoard[lin][col] = playerTurn.value?.id!!
+                }
+                break
+            }
+
+        }
+    }
+
+    /**
+     * Função que vira todas as peças possíveis em ambas as diagonais do fundo
+     */
+    fun flipDiagonalBottom(copyBoard: Array<IntArray>, line: Int, column: Int, flipDiagonalLeft: Boolean) {
+        var lin = line
+        var col = column
+        while (if (flipDiagonalLeft) lin < boardDimensions.value!! - 1 && col >= 1 else lin < boardDimensions.value!! - 1 && col < boardDimensions.value!! - 1) {
+            if (flipDiagonalLeft) {
+                lin++
+                col--
+            } else {
+                lin++
+                col++
+            }
+
+            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
+            if (copyBoard[lin][col] == 0)
+                break
+
+            if (copyBoard[lin][col] == playerTurn.value?.id) {
+                while (if (flipDiagonalLeft) lin > line && col < column else lin > line && col > column) {
+                    //Volta na direção oposta até ao local inicial e,
+                    //por cada posição que passa, altera a atual pela do jogador que jogou
+                    if (flipDiagonalLeft) {
+                        lin--
+                        col++
+                    } else {
+                        lin--
+                        col--
+                    }
+                    copyBoard[lin][col] = playerTurn.value?.id!!
+                }
+                break
+            }
+        }
+    }
+
+    /**
+     * Função que, dada uma linha, procura um local para colocar uma peça
+     */
+    fun searchBoardLine(line: Int, column: Int, checkingLeft: Boolean): Posicoes? {
+        var col = column
+        val board = board.value!!
+
+        while (if (checkingLeft) col < (boardDimensions.value!! - 1) else col >= 1) {
+            if (checkingLeft) {
+                col++
+            } else {
+                col--
+            }
+
+            if (board[line][col] != 0 && board[line][col] == playerTurn.value?.id) {
+                if (checkingLeft) {
+                    if (column - 1 >= 0 && board[line][column - 1] == 0) {
+                        return Posicoes(line, column - 1)
+                    } else {
+                        return null
+                    }
+                } else {
+                    if (column + 1 < boardDimensions.value!! && board[line][column + 1] == 0) {
+                        return Posicoes(line, column + 1)
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Função que, dada uma coluna, procura um local para colocar uma peça
+     */
+    fun searchBoardColumn(linha: Int, coluna: Int, checkingTop: Boolean): Posicoes? {
+        var pos = linha
+        val board = board.value!!
+
+        while (if (checkingTop) pos < (boardDimensions.value!! - 1) else pos >= 1) {
+            if (checkingTop) {
+                pos++
+            } else {
+                pos--
+            }
+
+            if (board[pos][coluna] == playerTurn.value?.id) {
+                if (checkingTop) {
+                    if ((linha - 1) >= 0 && board[linha - 1][coluna] == 0) {
+                        return Posicoes(linha - 1, coluna)
+                    } else {
+                        return null
+                    }
+                } else {
+                    if ((linha + 1) < boardDimensions.value!! && board[linha + 1][coluna] == 0) {
+                        return Posicoes(linha + 1, coluna)
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
+     * esquerda ou direita no topo da posição
+     */
+    fun searchBoardDiagonalTop(line: Int, column: Int, checkingTopLeft: Boolean): Posicoes? {
+        var lin = line
+        var col = column
+        val board = board.value!!
+
+        while (if (checkingTopLeft) (lin < boardDimensions.value!! - 1) && (col < boardDimensions.value!! - 1) else (lin < boardDimensions.value!! - 1 && col >= 1)) {
+            if (checkingTopLeft) {
+                col++
+            } else {
+                col--
+            }
+            lin++
+
+            if (board[lin][col] == playerTurn.value?.id) {
+                if (checkingTopLeft) {
+                    if ((line - 1) >= 0 && (column - 1) >= 0 && board[line - 1][column - 1] == 0) {
+                        return Posicoes(line - 1, column - 1)
+                    } else {
+                        return null
+                    }
+                } else {
+                    if ((line - 1 > 0 && column + 1 < boardDimensions.value!!) && board[line - 1][column + 1] == 0) {
+                        return Posicoes(line - 1, column + 1)
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
+     * esquerda ou direita no fundo da posição
+     */
+    fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft: Boolean): Posicoes? {
+        var lin = line
+        var col = column
+        val board = board.value!!
+
+        while (if (checkingBottomLeft) (lin >= 1 && col < boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)) {
+            if (checkingBottomLeft)
+                col++
+            else
+                col--
+            lin--
+
+            if (board[lin][col] == playerTurn.value?.id) {
+                if (checkingBottomLeft) {
+                    if ((column - 1 >= 0 && line + 1 < boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
+                        return Posicoes(line + 1, column - 1)
+                    } else {
+                        return null
+                    }
+                } else {
+                    if ((line + 1 < boardDimensions.value!! && column + 1 < boardDimensions.value!!) &&
+                            board[line + 1][column + 1] == 0) {
+                        return Posicoes(line + 1, column + 1)
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+
+
+
 
 }

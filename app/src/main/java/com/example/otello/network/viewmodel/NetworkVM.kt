@@ -42,6 +42,7 @@ class NetworkVM : ViewModel(){
         pl.name = nome
         pl.photo = image
         jogadores.add(pl)
+        NetworkManager.playerId = pl.id
 
        thread {
             serverSocket = ServerSocket()
@@ -95,6 +96,7 @@ class NetworkVM : ViewModel(){
                                 val jsonObj = JSONObject()
                                 jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
                                 jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_RESPONSE_ACCEPTED)
+                                jsonObj.put(ConstStrings.PLAYER_ID, player.id)
                                 NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
                             } else {
                                 val jsonObj = JSONObject()
@@ -208,6 +210,7 @@ class NetworkVM : ViewModel(){
                     }
                     ConstStrings.PLAYER_INFO_RESPONSE -> {
                         if(json.optString(ConstStrings.PLAYER_INFO_RESPONSE_VALID) == ConstStrings.PLAYER_INFO_RESPONSE_ACCEPTED) {
+                            NetworkManager.playerId = json.optInt(ConstStrings.PLAYER_ID)
                             infos.postValue(LobbyStates.WAITING_START)
                         }
                         else {
