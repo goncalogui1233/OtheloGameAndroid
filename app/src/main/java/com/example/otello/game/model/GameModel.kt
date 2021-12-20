@@ -306,6 +306,51 @@ object GameModel {
         return null
     }
 
+    fun bombMove(board: Array<IntArray>, line: Int, column: Int): Array<IntArray> {
+        val copyBoard = board
+
+        //Left
+        if (column - 1 >= 0) {
+            copyBoard[line][column - 1] = 0
+        }
+
+        //Diagonal Top Left
+        if (line - 1 >= 0 && column - 1 >= 0) {
+            copyBoard[line - 1][column - 1] = 0
+        }
+        //Top
+        if (line - 1 >= 0) {
+            copyBoard[line - 1][column] = 0
+        }
+
+        //Diagonal Top Right
+        if (line - 1 >= 0 && column + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line - 1][column + 1] = 0
+        }
+
+        //Right
+        if (column + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line][column + 1] = 0
+        }
+
+        //Diagonal Bottom Right
+        if (line + 1 < GameModel.boardDimensions.value!! && column + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line + 1][column + 1] = 0
+        }
+
+        //Bottom
+        if (line + 1 < GameModel.boardDimensions.value!!) {
+            copyBoard[line + 1][column] = 0
+        }
+
+        //Diagonal Bottom Left
+        if (line + 1 < GameModel.boardDimensions.value!! && column - 1 >= 0) {
+            copyBoard[line + 1][column - 1] = 0
+        }
+
+        return copyBoard
+    }
+
 
 
 

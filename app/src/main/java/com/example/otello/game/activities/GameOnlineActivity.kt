@@ -182,29 +182,14 @@ class GameOnlineActivity : AppCompatActivity() {
                 }
             }
             else {
-                if(currPlayerId == NetworkManager.playerId) {
+                if (currPlayerId == NetworkManager.playerId) {
                     val json = JSONObject()
-                    if (changePieceActivated) {
-                        changePieceArray.add(Posicoes(linha, coluna))
-                        if (changePieceArray.size == 3) {
-                            val jsonArray = JSONArray()
-                            for(piece in changePieceArray) {
-                                jsonArray.put(JSONObject().put(ConstStrings.BOARD_LINE, piece.linha)
-                                        .put(ConstStrings.BOARD_COLUMN, piece.coluna))
-                            }
-                            changePieceArray.clear()
-                            changePieceActivated = false
-                        }
-                    }
-                    else {
-                        json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)
-                        json.put(ConstStrings.GAME_PIECE_POSITION, JSONObject()
-                                .put(ConstStrings.BOARD_LINE, linha)
-                                .put(ConstStrings.BOARD_COLUMN, coluna))
-                        NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
-                    }
+                    json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)
+                    json.put(ConstStrings.GAME_PIECE_POSITION, JSONObject()
+                            .put(ConstStrings.BOARD_LINE, linha)
+                            .put(ConstStrings.BOARD_COLUMN, coluna))
 
-
+                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
                 }
             }
         }
@@ -350,13 +335,11 @@ class GameOnlineActivity : AppCompatActivity() {
                         ConstStrings.GAME_PIECE_MOVE_ANSWER -> {
                             when (json.optString(ConstStrings.STATUS)) {
                                 ConstStrings.GAME_PIECE_MOVE_ACTIVATED -> {
-                                    changePieceActivated = true
                                     Snackbar.make(gameLayout, resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
                                             Snackbar.LENGTH_LONG).show()
                                 }
 
                                 ConstStrings.GAME_PIECE_MOVE_DEACTIVATED -> {
-                                    changePieceActivated = false
                                     Snackbar.make(gameLayout, resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
                                             Snackbar.LENGTH_LONG).show()
                                 }
