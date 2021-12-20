@@ -1,6 +1,8 @@
 package com.example.otello.game.activities
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -74,84 +76,6 @@ class GameOnlineActivity : AppCompatActivity() {
                 }
             }
         }
-
-        showMovesBtn.setOnClickListener {
-            shouldSeeMoves = !shouldSeeMoves
-            if(shouldSeeMoves)
-                adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
-            else
-                adapter.setPlayerMoves(arrayListOf())
-
-            adapter.notifyDataSetChanged()
-        }
-
-        bombBtn.setOnClickListener {
-            //Só ativa o special da bomba caso outro special não esteja ativo
-            when(connType) {
-                ConnType.SERVER -> {
-                    if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
-                        if (!v.gameModel.changePiecesMove.value!!) {
-                            if (v.gameModel.bombMove.value!!) {
-                                v.gameModel.bombMove.value = false
-                                Snackbar.make(gameLayout,
-                                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
-                                        Snackbar.LENGTH_LONG).show()
-                            } else {
-                                v.gameModel.bombMove.value = true
-                                Snackbar.make(gameLayout,
-                                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
-                                        Snackbar.LENGTH_LONG).show()
-                            }
-                        } else {
-                            Snackbar.make(gameLayout,
-                                    resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
-                        }
-                    }
-                }
-                ConnType.CLIENT -> {
-                    if(currPlayerId == NetworkManager.playerId) {
-                        val json = JSONObject()
-                        json.put(ConstStrings.TYPE, ConstStrings.GAME_BOMB_MOVE_ON)
-                        NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
-                    }
-                }
-            }
-
-        }
-
-        changePieceBtn.setOnClickListener {
-            when(connType) {
-                ConnType.SERVER -> {
-                    if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
-                        if (!v.gameModel.bombMove.value!!) {
-                            if (!v.gameModel.changePiecesMove.value!!) {
-                                v.gameModel.changePiecesMove.value = true
-                                Snackbar.make(gameLayout,
-                                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
-                                        Snackbar.LENGTH_LONG).show()
-                            } else {
-                                v.gameModel.changePiecesMove.value = false
-                                v.gameModel.changePieceArray.clear()
-                                Snackbar.make(gameLayout,
-                                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
-                                        Snackbar.LENGTH_LONG).show()
-                            }
-                        } else {
-                            Snackbar.make(gameLayout,
-                                    resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
-                        }
-                    }
-                }
-
-                ConnType.CLIENT -> {
-                    if(currPlayerId == NetworkManager.playerId) {
-                        val json = JSONObject()
-                        json.put(ConstStrings.TYPE, ConstStrings.GAME_PIECE_MOVE_ON)
-                        NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
-                    }
-                }
-            }
-        }
     }
 
     private fun setGridView(isServer : Boolean) {
@@ -211,10 +135,6 @@ class GameOnlineActivity : AppCompatActivity() {
         //Atualizar o ecrã sobre o atual jogador
         playerTurnInfo.text = resources.getString(R.string.player)
                 .replace("[X]", v.gameModel.playerTurn.value?.id.toString())
-
-        //Ativar/desativar botões para jogadas especiais
-        bombBtn.isEnabled = it.bombPiece
-        changePieceBtn.isEnabled = it.pieceChange
 
         //Ao mudar o jogador, atualizar as pontuações
         pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
@@ -394,4 +314,102 @@ class GameOnlineActivity : AppCompatActivity() {
             }
         }
     }
+
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.game_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        when(item.itemId) {
+
+            R.id.showMoves -> {
+                shouldSeeMoves = !shouldSeeMoves
+                if(shouldSeeMoves)
+                    adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
+                else
+                    adapter.setPlayerMoves(arrayListOf())
+
+                adapter.notifyDataSetChanged()
+            }
+
+            R.id.bombTrigger -> bombAction()
+
+            R.id.pieceTrigger -> pieceAction()
+
+
+        }
+
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun bombAction() {
+        when(connType) {
+            ConnType.SERVER -> {
+                if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                    if (!v.gameModel.changePiecesMove.value!!) {
+                        if (v.gameModel.bombMove.value!!) {
+                            v.gameModel.bombMove.value = false
+                            Snackbar.make(gameLayout,
+                                    resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
+                                    Snackbar.LENGTH_LONG).show()
+                        } else {
+                            v.gameModel.bombMove.value = true
+                            Snackbar.make(gameLayout,
+                                    resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
+                                    Snackbar.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Snackbar.make(gameLayout,
+                                resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
+                    }
+                }
+            }
+            ConnType.CLIENT -> {
+                if(currPlayerId == NetworkManager.playerId) {
+                    val json = JSONObject()
+                    json.put(ConstStrings.TYPE, ConstStrings.GAME_BOMB_MOVE_ON)
+                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                }
+            }
+        }
+    }
+
+    private fun pieceAction() {
+        when(connType) {
+            ConnType.SERVER -> {
+                if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                    if (!v.gameModel.bombMove.value!!) {
+                        if (!v.gameModel.changePiecesMove.value!!) {
+                            v.gameModel.changePiecesMove.value = true
+                            Snackbar.make(gameLayout,
+                                    resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
+                                    Snackbar.LENGTH_LONG).show()
+                        } else {
+                            v.gameModel.changePiecesMove.value = false
+                            v.gameModel.changePieceArray.clear()
+                            Snackbar.make(gameLayout,
+                                    resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
+                                    Snackbar.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Snackbar.make(gameLayout,
+                                resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
+                    }
+                }
+            }
+
+            ConnType.CLIENT -> {
+                if(currPlayerId == NetworkManager.playerId) {
+                    val json = JSONObject()
+                    json.put(ConstStrings.TYPE, ConstStrings.GAME_PIECE_MOVE_ON)
+                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                }
+            }
+        }
+    }
+
 }

@@ -2,6 +2,8 @@ package com.example.otello.game.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -10,10 +12,12 @@ import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
 import com.example.otello.game.viewmodel.GameViewModel
 import com.example.otello.game.model.Jogador
+import com.example.otello.network.manager.NetworkManager
 import com.example.otello.network.model.ConnType
 import com.example.otello.utils.ConstStrings
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_game.*
+import org.json.JSONObject
 import kotlin.random.Random
 
 class GameActivity : AppCompatActivity() {
@@ -68,60 +72,6 @@ class GameActivity : AppCompatActivity() {
         passTurnBtn.setOnClickListener {
             v.changePlayer()
         }
-
-        showMovesBtn.setOnClickListener {
-            shouldSeeMoves = !shouldSeeMoves
-            if(shouldSeeMoves)
-                adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
-            else
-                adapter.setPlayerMoves(arrayListOf())
-
-            adapter.notifyDataSetChanged()
-        }
-
-        bombBtn.setOnClickListener {
-            //Só ativa o special da bomba caso outro special não esteja ativo
-            if(!v.gameModel.changePiecesMove.value!!) {
-                if (v.gameModel.bombMove.value!!) {
-                    v.gameModel.bombMove.value = false
-                    Snackbar.make(gameLayout,
-                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
-                        Snackbar.LENGTH_LONG).show()
-                }
-                else {
-                    v.gameModel.bombMove.value = true
-                    Snackbar.make(gameLayout,
-                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
-                        Snackbar.LENGTH_LONG).show()
-                }
-            }
-            else {
-                Snackbar.make(gameLayout,
-                    resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
-            }
-        }
-
-        changePieceBtn.setOnClickListener {
-            if(!v.gameModel.bombMove.value!!) {
-                if (!v.gameModel.changePiecesMove.value!!) {
-                    v.gameModel.changePiecesMove.value = true
-                    Snackbar.make(gameLayout,
-                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
-                        Snackbar.LENGTH_LONG).show()
-                } else {
-                    v.gameModel.changePiecesMove.value = false
-                    v.gameModel.changePieceArray.clear()
-                    Snackbar.make(gameLayout,
-                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
-                        Snackbar.LENGTH_LONG).show()
-                }
-            }
-            else {
-                Snackbar.make(gameLayout,
-                    resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
-            }
-
-        }
     }
 
 
@@ -138,10 +88,6 @@ class GameActivity : AppCompatActivity() {
         //Atualizar o ecrã sobre o atual jogador
         playerTurnInfo.text = resources.getString(R.string.player)
             .replace("[X]", v.gameModel.playerTurn.value?.id.toString())
-
-        //Ativar/desativar botões para jogadas especiais
-        bombBtn.isEnabled = it.bombPiece
-        changePieceBtn.isEnabled = it.pieceChange
 
         //Ao mudar o jogador, atualizar as pontuações
         pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
@@ -169,7 +115,6 @@ class GameActivity : AppCompatActivity() {
                     finish()
                 }
                 .show()
-
             }
         }
     }
@@ -178,6 +123,75 @@ class GameActivity : AppCompatActivity() {
         if(shouldSeeMoves) {
             adapter.setPlayerMoves(it)
             adapter.notifyDataSetChanged()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.game_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
+        when(item.itemId) {
+
+            R.id.showMoves -> {
+                shouldSeeMoves = !shouldSeeMoves
+                if(shouldSeeMoves)
+                    adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
+                else
+                    adapter.setPlayerMoves(arrayListOf())
+
+                adapter.notifyDataSetChanged()
+            }
+
+            R.id.bombTrigger -> bombAction()
+
+            R.id.pieceTrigger -> pieceAction()
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun bombAction() {
+        //Só ativa o special da bomba caso outro special não esteja ativo
+        if(!v.gameModel.changePiecesMove.value!!) {
+            if (v.gameModel.bombMove.value!!) {
+                v.gameModel.bombMove.value = false
+                Snackbar.make(gameLayout,
+                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.deactivated),
+                        Snackbar.LENGTH_LONG).show()
+            }
+            else {
+                v.gameModel.bombMove.value = true
+                Snackbar.make(gameLayout,
+                        resources.getString(R.string.bombSpecial) + " " + resources.getString(R.string.activated),
+                        Snackbar.LENGTH_LONG).show()
+            }
+        }
+        else {
+            Snackbar.make(gameLayout,
+                    resources.getString(R.string.noBombPossible), Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    private fun pieceAction() {
+        if(!v.gameModel.bombMove.value!!) {
+            if (!v.gameModel.changePiecesMove.value!!) {
+                v.gameModel.changePiecesMove.value = true
+                Snackbar.make(gameLayout,
+                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.activated),
+                        Snackbar.LENGTH_LONG).show()
+            } else {
+                v.gameModel.changePiecesMove.value = false
+                v.gameModel.changePieceArray.clear()
+                Snackbar.make(gameLayout,
+                        resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
+                        Snackbar.LENGTH_LONG).show()
+            }
+        }
+        else {
+            Snackbar.make(gameLayout,
+                    resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
         }
     }
 

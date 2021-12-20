@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/showMoves"
+        android:title="@string/moves" />
+
+    <item
+        android:id="@+id/bombTrigger"
+        android:icon="@drawable/ic_edit"
+        android:title="@string/bombSpecial" />
+
+    <item
+        android:id="@+id/pieceTrigger"
+        android:icon="@drawable/ic_edit"
+        android:title="@string/changePieceSpecial" />
+</menu>
