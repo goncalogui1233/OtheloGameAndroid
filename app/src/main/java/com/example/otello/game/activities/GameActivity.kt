@@ -33,18 +33,12 @@ class GameActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
 
-        connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE)!!)
-        gameMode = intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)!!
-
         v = ViewModelProvider(this).get(GameViewModel::class.java)
         v.initBoard(boardD * boardD, boardD, 2)
         v.gameModel.board.observe(this, observeBoard)
         v.gameModel.playerTurn.observe(this, observePlayerTurn)
         v.gameModel.playPositions.observe(this, observePlayerMoves)
         v.gameModel.endGame.observe(this, observeEndGame)
-
-
-        //TODO - Se jogo for local, configurar o array dos jogadores
 
         //Setting the Adapter, Dimensions and ClickListener for Grid
         adapter = GridAdapter(this, v.gameModel.board.value!!)

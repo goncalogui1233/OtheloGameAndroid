@@ -14,10 +14,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.net.InetSocketAddress
-import java.net.ServerSocket
-import java.net.Socket
-import java.net.SocketException
+import java.net.*
 import java.util.*
 import kotlin.concurrent.thread
 
@@ -168,7 +165,7 @@ class NetworkVM : ViewModel(){
             try {
                 NetworkManager.socketEnt = Socket(ip, port)
             }
-            catch (_: Exception) {
+            catch (e: Exception) {
                 return@thread
             }
 
