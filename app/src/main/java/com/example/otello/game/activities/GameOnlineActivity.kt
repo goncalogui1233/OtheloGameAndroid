@@ -357,23 +357,25 @@ class GameOnlineActivity : AppCompatActivity() {
 
     private fun movesAction() {
         when(connType) {
-
             ConnType.SERVER -> {
-                shouldSeeMoves = !shouldSeeMoves
-                if(shouldSeeMoves)
-                    adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
-                else
-                    adapter.setPlayerMoves(arrayListOf())
+                if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                    shouldSeeMoves = !shouldSeeMoves
+                    if (shouldSeeMoves)
+                        adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
+                    else
+                        adapter.setPlayerMoves(arrayListOf())
 
-                adapter.notifyDataSetChanged()
+                    adapter.notifyDataSetChanged()
+                }
             }
 
             ConnType.CLIENT -> {
-                val json = JSONObject()
-                json.put(ConstStrings.TYPE, ConstStrings.GAME_PLAYER_SEE_MOVES)
-                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                if(currPlayerId == NetworkManager.playerId) {
+                    val json = JSONObject()
+                    json.put(ConstStrings.TYPE, ConstStrings.GAME_PLAYER_SEE_MOVES)
+                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                }
             }
-
         }
     }
 
@@ -446,15 +448,7 @@ class GameOnlineActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        GameModel.numJogadores.value = null
-        GameModel.playPositions.value = null
-        GameModel.playerTurn.value = null
-        GameModel.changePieceArray.clear()
-        GameModel.boardDimensions.value = null
-        GameModel.bombMove.value = false
-        GameModel.changePiecesMove.value = false
-        GameModel.board.value = null
-        GameModel.endGame.value = false
+        GameModel.resetGameModel()
     }
 
 }

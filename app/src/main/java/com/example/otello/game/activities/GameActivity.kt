@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.otello.game.model.Posicoes
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
+import com.example.otello.game.model.GameModel
 import com.example.otello.game.viewmodel.GameViewModel
 import com.example.otello.game.model.Jogador
 import com.example.otello.network.manager.NetworkManager
@@ -187,6 +188,12 @@ class GameActivity : AppCompatActivity() {
             Snackbar.make(gameLayout,
                     resources.getString(R.string.noChangePiecePossible), Snackbar.LENGTH_LONG).show()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        GameModel.resetGameModel()
     }
 
 }

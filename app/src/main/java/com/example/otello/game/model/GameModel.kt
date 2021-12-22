@@ -4,17 +4,17 @@ import androidx.lifecycle.MutableLiveData
 
 object GameModel {
 
-    val board = MutableLiveData<Array<IntArray>>()
-    val playerTurn = MutableLiveData<Jogador>()
-    val numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
-    val boardDimensions = MutableLiveData<Int>()
-    val playPositions = MutableLiveData<ArrayList<Posicoes>>()
+    var board = MutableLiveData<Array<IntArray>>()
+    var playerTurn = MutableLiveData<Jogador>()
+    var numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
+    var boardDimensions = MutableLiveData<Int>()
+    var playPositions = MutableLiveData<ArrayList<Posicoes>>()
 
-    val endGame = MutableLiveData(false)
+    var endGame = MutableLiveData(false)
     var bombMove = MutableLiveData(false)
     var changePiecesMove = MutableLiveData(false)
 
-    val changePieceArray = arrayListOf<Posicoes>()
+    var changePieceArray = arrayListOf<Posicoes>()
 
     /**
      * Functions
@@ -388,7 +388,17 @@ object GameModel {
         return copyBoard
     }
 
-
+    fun resetGameModel() {
+        numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
+        playPositions = MutableLiveData<ArrayList<Posicoes>>()
+        playerTurn = MutableLiveData<Jogador>()
+        changePieceArray = arrayListOf<Posicoes>()
+        boardDimensions = MutableLiveData<Int>()
+        bombMove = MutableLiveData(false)
+        changePiecesMove = MutableLiveData(false)
+        board = MutableLiveData<Array<IntArray>>()
+        endGame= MutableLiveData(false)
+    }
 
 
 
