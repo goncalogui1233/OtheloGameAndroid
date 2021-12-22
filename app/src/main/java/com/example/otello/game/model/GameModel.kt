@@ -171,9 +171,19 @@ object GameModel {
     /**
      * Função que, dada uma linha, procura um local para colocar uma peça
      */
-    fun searchBoardLine(line: Int, column: Int, checkingLeft: Boolean): Posicoes? {
+    fun searchBoardLine(line: Int, column: Int, checkingLeft: Boolean, player : Jogador? = null): Posicoes? {
         var col = column
         val board = board.value!!
+
+        var jogadorAtual : Jogador
+
+        if(player == null) {
+            jogadorAtual = playerTurn.value!!
+        }
+        else {
+            jogadorAtual = player
+        }
+
 
         while (if (checkingLeft) col < (boardDimensions.value!! - 1) else col >= 1) {
             if (checkingLeft) {
@@ -182,7 +192,7 @@ object GameModel {
                 col--
             }
 
-            if (board[line][col] != 0 && board[line][col] == playerTurn.value?.id) {
+            if (board[line][col] != 0 && board[line][col] == jogadorAtual.id) {
                 if (checkingLeft) {
                     if (column - 1 >= 0 && board[line][column - 1] == 0) {
                         return Posicoes(line, column - 1)
@@ -204,9 +214,18 @@ object GameModel {
     /**
      * Função que, dada uma coluna, procura um local para colocar uma peça
      */
-    fun searchBoardColumn(linha: Int, coluna: Int, checkingTop: Boolean): Posicoes? {
+    fun searchBoardColumn(linha: Int, coluna: Int, checkingTop: Boolean, player : Jogador? = null): Posicoes? {
         var pos = linha
         val board = board.value!!
+
+        var jogadorAtual : Jogador
+
+        if(player == null) {
+            jogadorAtual = playerTurn.value!!
+        }
+        else {
+            jogadorAtual = player
+        }
 
         while (if (checkingTop) pos < (boardDimensions.value!! - 1) else pos >= 1) {
             if (checkingTop) {
@@ -215,7 +234,7 @@ object GameModel {
                 pos--
             }
 
-            if (board[pos][coluna] == playerTurn.value?.id) {
+            if (board[pos][coluna] == jogadorAtual.id) {
                 if (checkingTop) {
                     if ((linha - 1) >= 0 && board[linha - 1][coluna] == 0) {
                         return Posicoes(linha - 1, coluna)
@@ -238,10 +257,19 @@ object GameModel {
      * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
      * esquerda ou direita no topo da posição
      */
-    fun searchBoardDiagonalTop(line: Int, column: Int, checkingTopLeft: Boolean): Posicoes? {
+    fun searchBoardDiagonalTop(line: Int, column: Int, checkingTopLeft: Boolean, player : Jogador? = null): Posicoes? {
         var lin = line
         var col = column
         val board = board.value!!
+
+        var jogadorAtual : Jogador
+
+        if(player == null) {
+            jogadorAtual = playerTurn.value!!
+        }
+        else {
+            jogadorAtual = player
+        }
 
         while (if (checkingTopLeft) (lin < boardDimensions.value!! - 1) && (col < boardDimensions.value!! - 1) else (lin < boardDimensions.value!! - 1 && col >= 1)) {
             if (checkingTopLeft) {
@@ -251,7 +279,7 @@ object GameModel {
             }
             lin++
 
-            if (board[lin][col] == playerTurn.value?.id) {
+            if (board[lin][col] == jogadorAtual.id) {
                 if (checkingTopLeft) {
                     if ((line - 1) >= 0 && (column - 1) >= 0 && board[line - 1][column - 1] == 0) {
                         return Posicoes(line - 1, column - 1)
@@ -274,10 +302,19 @@ object GameModel {
      * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
      * esquerda ou direita no fundo da posição
      */
-    fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft: Boolean): Posicoes? {
+    fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft: Boolean, player : Jogador? = null): Posicoes? {
         var lin = line
         var col = column
         val board = board.value!!
+
+        var jogadorAtual : Jogador
+
+        if(player == null) {
+            jogadorAtual = playerTurn.value!!
+        }
+        else {
+            jogadorAtual = player
+        }
 
         while (if (checkingBottomLeft) (lin >= 1 && col < boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)) {
             if (checkingBottomLeft)
@@ -286,7 +323,7 @@ object GameModel {
                 col--
             lin--
 
-            if (board[lin][col] == playerTurn.value?.id) {
+            if (board[lin][col] == jogadorAtual.id) {
                 if (checkingBottomLeft) {
                     if ((column - 1 >= 0 && line + 1 < boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
                         return Posicoes(line + 1, column - 1)

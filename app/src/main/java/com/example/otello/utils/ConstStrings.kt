@@ -67,6 +67,7 @@ object ConstStrings {
     const val GAME_PIECE_MOVE_ALREADY_ACTIVATED = "PieceMoveIsActivated"
     const val GAME_BOMB_MOVE_IS_ACTIVATED = "BombMoveIsActivated"
     const val GAME_PIECE_MOVE_IS_ACTIVATED = "ChangePieceMoveIsActivated"
+    const val GAME_PLAYER_SEE_MOVES = "PlayerSeeMoves"
 
     const val GAME_BOMB_MOVE_WAS_ACTIVATED = "BombMoveWasActivated"
     const val GAME_PIECE_MOVE_WAS_ACTIVATED = "PieceMoveWasActivated"
@@ -82,8 +83,7 @@ object ConstStrings {
     const val GAME_PLACED_PIECE = "PlacedNewPiece"
     const val GAME_PIECE_POSITION = "PlacedPiecePosition"
     const val GAME_PUT_NEW_PIECE = "PutNewPiece"
-    const val GAME_CHANGE_PIECE_MOVE = "ChangePieceMove"
-    const val GAME_CHANGE_PIECE_ARRAY = "ChangePieceArray"
+    const val GAME_POSSIBLE_POSITIONS = "PossiblePositions"
     const val GAME_NEW_POSITIONS = "NewPositions"
     const val GAME_VALID_PIECE = "ValidPlace"
 

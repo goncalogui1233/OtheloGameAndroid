@@ -41,7 +41,7 @@ class NetworkVM : ViewModel(){
         jogadores.add(pl)
         NetworkManager.playerId = pl.id
 
-       thread {
+        thread {
             serverSocket = ServerSocket()
             serverSocket!!.reuseAddress = true
             serverSocket!!.bind(InetSocketAddress(port))
@@ -50,8 +50,10 @@ class NetworkVM : ViewModel(){
                     try {
                         val socket = this?.accept()
                         if (socket != null) {
+                            val socket2 = this?.accept()
                             val p = Jogador(clientsConnected.value!! + 1)
                             p.socket = socket
+                            p.gameSocket = socket2
                             clientsConnected.postValue(clientsConnected.value!! + 1)
                             jogadores.add(p)
                             informationToServer(p)
@@ -69,7 +71,8 @@ class NetworkVM : ViewModel(){
                 var str = ""
                 try {
                     str = BufferedReader(InputStreamReader(player.socket?.getInputStream())).readLine()
-                } catch (e: Exception) {
+                }
+                catch (e: Exception) {
                     Log.i("InfoToServer", "Error in read")
                     jogadores.remove(player)
                     clientsConnected.postValue(clientsConnected.value!! - 1)
@@ -116,7 +119,7 @@ class NetworkVM : ViewModel(){
                             return@thread
                         }
                     }
-                } catch (e : JSONException) {}
+                } catch (e : JSONException) { }
             }
         }
 
@@ -124,14 +127,12 @@ class NetworkVM : ViewModel(){
 
     //Server warns every player that the game will start
     fun startGame() {
-        thread {
-            val json = JSONObject()
-            json.put(ConstStrings.TYPE, ConstStrings.START_GAME)
+        val json = JSONObject()
+        json.put(ConstStrings.TYPE, ConstStrings.START_GAME)
 
-            for(p in jogadores) {
-                if(p.socket != null) {
-                    NetworkManager.sendInfo(p.socket!!, json.toString())
-                }
+        for(p in jogadores) {
+            if(p.socket != null) {
+                NetworkManager.sendInfo(p.socket!!, json.toString())
             }
         }
     }
@@ -164,6 +165,7 @@ class NetworkVM : ViewModel(){
         thread {
             try {
                 NetworkManager.socketEnt = Socket(ip, port)
+                NetworkManager.gameSocket = Socket(ip, port)
             }
             catch (e: Exception) {
                 return@thread
@@ -185,6 +187,7 @@ class NetworkVM : ViewModel(){
 
     //Client receive info from server
     fun informationToClient() {
+
        thread {
             while (!checkClientInfos) {
                 var str = ""

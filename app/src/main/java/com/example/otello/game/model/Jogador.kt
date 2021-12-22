@@ -11,15 +11,18 @@ class Jogador : Serializable{
     var bombPiece : Boolean
     var pieceChange : Boolean
     var hadMoves : Boolean
+    var seeMoves : Boolean
     var score : Int = 0
     var photo : Bitmap? = null
     var socket : Socket? = null
+    var gameSocket : Socket? = null
 
     constructor(id : Int) {
         this.id = id
         this.bombPiece = true
         this.pieceChange = true
         this.hadMoves = true
+        this.seeMoves = false
     }
 
 }

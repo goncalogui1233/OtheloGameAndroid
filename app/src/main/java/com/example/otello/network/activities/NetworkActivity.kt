@@ -111,7 +111,7 @@ class NetworkActivity : AppCompatActivity() {
             LobbyStates.GAME_STARTING -> {
                 infos.text = resources.getString(R.string.gameStarting)
                 networkVM!!.checkClientInfos = true
-                networkVM!!.clientEnterGame()
+                //networkVM!!.clientEnterGame()
 
                 //TODO -> Remove this sleep...
                 Thread.sleep(2000)

@@ -10,6 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
+import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
 import com.example.otello.game.viewmodel.GameOnlineViewModel
@@ -24,6 +25,7 @@ import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.Exception
+import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
@@ -36,8 +38,6 @@ class GameOnlineActivity : AppCompatActivity() {
     var connType : ConnType? = null
     var gameMode : String = ""
     var currPlayerId : Int = -1
-    var changePieceActivated = false
-    var changePieceArray = arrayListOf<Posicoes>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,7 +72,7 @@ class GameOnlineActivity : AppCompatActivity() {
                 ConnType.CLIENT -> {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
-                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
                 }
             }
         }
@@ -113,7 +113,7 @@ class GameOnlineActivity : AppCompatActivity() {
                             .put(ConstStrings.BOARD_LINE, linha)
                             .put(ConstStrings.BOARD_COLUMN, coluna))
 
-                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
                 }
             }
         }
@@ -121,7 +121,9 @@ class GameOnlineActivity : AppCompatActivity() {
 
     private fun sortearJogador(){
         val turn = Random.nextInt(0, v.gameModel.numJogadores.value?.size!!) + 1
-        v.gameModel.playerTurn.value = v.checkNextPlayer(turn)
+        val nextPlayer = v.checkNextPlayer(turn)
+        v.gameModel.playerTurn.value = nextPlayer
+        v.gameModel.playPositions.value = v.getPossiblePositions(nextPlayer)
     }
 
     private val observeBoard = Observer<Array<IntArray>> {
@@ -129,9 +131,6 @@ class GameOnlineActivity : AppCompatActivity() {
     }
 
     private val observePlayerTurn = Observer<Jogador> {
-        //Check where the player can play
-        v.getPossiblePositions()
-
         //Atualizar o ecrã sobre o atual jogador
         playerTurnInfo.text = resources.getString(R.string.player)
                 .replace("[X]", v.gameModel.playerTurn.value?.id.toString())
@@ -182,13 +181,15 @@ class GameOnlineActivity : AppCompatActivity() {
         thread {
             val json = JSONObject()
             json.put(ConstStrings.TYPE, ConstStrings.CLIENT_WANT_DATA)
-            NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+            NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
 
             while (true) {
                 var str: String = ""
                 try {
-                    str = BufferedReader(InputStreamReader(NetworkManager.socketEnt!!.getInputStream())).readLine()
-                } catch (e: Exception) {
+                    str = BufferedReader(InputStreamReader(NetworkManager.gameSocket!!.getInputStream())).readLine()
+                }
+                catch (e: SocketTimeoutException){}
+                catch (e: Exception) {
                     return@thread
                 }
 
@@ -286,6 +287,10 @@ class GameOnlineActivity : AppCompatActivity() {
 
                             if(json.optBoolean(ConstStrings.GAME_VALID_PIECE) && newPos != null) {
                                 runOnUiThread {
+                                    if(currPlayerId != NetworkManager.playerId) {
+                                        adapter.setPlayerMoves(arrayListOf())
+                                    }
+
                                     adapter.notifyDataSetChanged()
 
                                     if (scores.length() == 2) {
@@ -309,6 +314,21 @@ class GameOnlineActivity : AppCompatActivity() {
                                 }
                             }
                         }
+
+                        ConstStrings.GAME_POSSIBLE_POSITIONS -> {
+                            val moves = json.optJSONArray(ConstStrings.GAME_POSSIBLE_POSITIONS)
+                            val movesArray = arrayListOf<Posicoes>()
+
+                            for(i in 0 until moves.length()) {
+                                val movesObj = moves.optJSONObject(i)
+                                movesArray.add(Posicoes(movesObj.optInt(ConstStrings.BOARD_LINE), movesObj.optInt(ConstStrings.BOARD_COLUMN)))
+                            }
+                            adapter.setPlayerMoves(movesArray)
+
+                            runOnUiThread {
+                                adapter.notifyDataSetChanged()
+                            }
+                        }
                     }
                 }
             }
@@ -325,7 +345,20 @@ class GameOnlineActivity : AppCompatActivity() {
 
         when(item.itemId) {
 
-            R.id.showMoves -> {
+            R.id.showMoves -> movesAction()
+
+            R.id.bombTrigger -> bombAction()
+
+            R.id.pieceTrigger -> pieceAction()
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun movesAction() {
+        when(connType) {
+
+            ConnType.SERVER -> {
                 shouldSeeMoves = !shouldSeeMoves
                 if(shouldSeeMoves)
                     adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
@@ -335,15 +368,13 @@ class GameOnlineActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
             }
 
-            R.id.bombTrigger -> bombAction()
-
-            R.id.pieceTrigger -> pieceAction()
-
+            ConnType.CLIENT -> {
+                val json = JSONObject()
+                json.put(ConstStrings.TYPE, ConstStrings.GAME_PLAYER_SEE_MOVES)
+                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+            }
 
         }
-
-
-        return super.onOptionsItemSelected(item)
     }
 
     private fun bombAction() {
@@ -372,7 +403,7 @@ class GameOnlineActivity : AppCompatActivity() {
                 if(currPlayerId == NetworkManager.playerId) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_BOMB_MOVE_ON)
-                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
                 }
             }
         }
@@ -406,10 +437,24 @@ class GameOnlineActivity : AppCompatActivity() {
                 if(currPlayerId == NetworkManager.playerId) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_PIECE_MOVE_ON)
-                    NetworkManager.sendInfo(NetworkManager.socketEnt!!, json.toString())
+                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        GameModel.numJogadores.value = null
+        GameModel.playPositions.value = null
+        GameModel.playerTurn.value = null
+        GameModel.changePieceArray.clear()
+        GameModel.boardDimensions.value = null
+        GameModel.bombMove.value = false
+        GameModel.changePiecesMove.value = false
+        GameModel.board.value = null
+        GameModel.endGame.value = false
     }
 
 }

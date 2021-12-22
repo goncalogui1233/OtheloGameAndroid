@@ -21,10 +21,11 @@ import kotlin.concurrent.thread
 object NetworkManager {
 
     var socketEnt : Socket? = null
+    var gameSocket : Socket? = null
     var playerId : Int = -1
 
-    fun sendInfo(socket: Socket, info : String) {
-        thread {
+    fun sendInfo(socket: Socket, info : String){
+       thread {
             val printStream = PrintStream(socket.getOutputStream())
 
             printStream.println(info)

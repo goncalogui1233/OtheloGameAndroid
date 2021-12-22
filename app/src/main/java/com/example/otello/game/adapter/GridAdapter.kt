@@ -38,7 +38,6 @@ class GridAdapter : BaseAdapter {
 
     fun setPlayerMoves(array: ArrayList<Posicoes>){
         this.playerMoves = array
-        notifyDataSetChanged()
     }
 
     override fun getCount(): Int {
