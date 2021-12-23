@@ -35,6 +35,7 @@
     <string name="noPieceMoveAgain">You cannot activate the change piece move again</string>
 
     <string name="moves">Show possible moves</string>
+    <string name="updateInfos">Update Game Infos</string>
 
 
 

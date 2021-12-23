@@ -6,11 +6,14 @@
 
     <item
         android:id="@+id/bombTrigger"
-        android:icon="@drawable/ic_edit"
         android:title="@string/bombSpecial" />
 
     <item
         android:id="@+id/pieceTrigger"
-        android:icon="@drawable/ic_edit"
         android:title="@string/changePieceSpecial" />
+
+    <item
+        android:id="@+id/updateInfos"
+        android:title="@string/updateInfos" />
+
 </menu>

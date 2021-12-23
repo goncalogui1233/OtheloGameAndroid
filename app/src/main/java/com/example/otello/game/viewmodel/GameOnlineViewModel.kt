@@ -515,6 +515,24 @@ class GameOnlineViewModel : ViewModel() {
 
                             NetworkManager.sendInfo(socket, jsonData.toString())
                         }
+
+                        ConstStrings.GAME_UPDATE_INFOS -> {
+                            val addedPieces = arrayListOf<AddedPosition>()
+                            //Recolhe todas as posições que já têm peça atribuida...
+                            for (i in 0 until gameModel.boardDimensions.value!!) {
+                                for (j in 0 until gameModel.boardDimensions.value!!) {
+                                    if(gameModel.board.value!![i][j] != 0) {
+                                        addedPieces.add(AddedPosition(i,j,gameModel.board.value!![i][j]))
+                                    }
+                                }
+                            }
+
+                            val jsonObject = sendTurnInfos(addedPieces, gameModel.playerTurn.value!!, gameModel.playPositions.value!!)
+                            jsonObject.put(ConstStrings.TYPE, ConstStrings.GAME_PUT_NEW_PIECE)
+                            NetworkManager.sendInfo(socket, jsonObject.toString())
+                        }
+
+
                     }
                 } catch (e: JSONException) {
                 }
@@ -583,6 +601,8 @@ class GameOnlineViewModel : ViewModel() {
                     .put(ConstStrings.BOARD_POS_VALUE, added.value))
         }
         jsonData.put(ConstStrings.GAME_NEW_POSITIONS, jsonArray)
+
+        jsonData.put(ConstStrings.GAME_NUMBER_MOVES, validPosicoes.size)
 
         //Se é suposto o jogador ver os movimentos
         if(turnPlayer.seeMoves) {

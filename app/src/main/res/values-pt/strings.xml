@@ -28,4 +28,5 @@
     <string name="noBombMoveAgain">Não pode ativar o special de Bomba novamente</string>
     <string name="noPieceMoveAgain">Não pode ativar o special de mudar peças novamente</string>
     <string name="moves">Mostrar movimentos possíveis</string>
+    <string name="updateInfos">Atualizar informações do jogo</string>
 </resources>

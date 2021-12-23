@@ -71,6 +71,21 @@ class GameOnlineActivity : AppCompatActivity() {
                 ConnType.SERVER -> {
                     if(v.gameModel.playerTurn.value?.id == NetworkManager.playerId) {
                         v.gameModel.playerTurn.value = v.checkNextPlayer()
+                        val jsonData = JSONObject()
+                        jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
+                        val nextPlayer = JSONObject().put(ConstStrings.PLAYER_ID, v.gameModel.playerTurn.value!!.id)
+                                .put(ConstStrings.PLAYER_NAME, v.gameModel.playerTurn.value!!.name)
+                        //if (turnPlayer.photo != null) {
+                        //    nextPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(turnPlayer.photo!!))
+                        //}
+
+                        jsonData.put(ConstStrings.CURRENT_PLAYER, nextPlayer)
+
+                        for(i in v.gameModel.numJogadores.value!!) {
+                            if(i.gameSocket != null) {
+                                NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                            }
+                        }
                     }
                 }
                 ConnType.CLIENT -> {
@@ -176,6 +191,15 @@ class GameOnlineActivity : AppCompatActivity() {
         if(shouldSeeMoves) {
             adapter.setPlayerMoves(it)
             adapter.notifyDataSetChanged()
+        }
+
+        if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+            if(v.gameModel.playPositions.value!!.size > 0) {
+                passTurnBtn.visibility = View.GONE
+            }
+            else {
+                passTurnBtn.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -296,39 +320,48 @@ class GameOnlineActivity : AppCompatActivity() {
                             val newPos = json.optJSONArray(ConstStrings.GAME_NEW_POSITIONS)
                             val currPlayer = json.optJSONObject(ConstStrings.GAME_PASS_TURN)
                             val scores = json.optJSONArray(ConstStrings.PLAYERS_SCORES)
-                            currPlayerId = currPlayer.optInt(ConstStrings.PLAYER_ID)
 
-                            for(i in 0 until newPos.length()){
-                                adapter.setPositionBoard(newPos.optJSONObject(i).optInt(ConstStrings.BOARD_LINE),
-                                        newPos.optJSONObject(i).optInt(ConstStrings.BOARD_COLUMN),
-                                        newPos.optJSONObject(i).optInt(ConstStrings.BOARD_POS_VALUE))
-                            }
+                            if(json.optBoolean(ConstStrings.GAME_VALID_PIECE)) {
+                                currPlayerId = currPlayer.optInt(ConstStrings.PLAYER_ID)
 
-                            if(json.optBoolean(ConstStrings.GAME_VALID_PIECE) && newPos != null) {
-                                runOnUiThread {
-                                    if(currPlayerId != NetworkManager.playerId) {
-                                        adapter.setPlayerMoves(arrayListOf())
-                                    }
+                                for (i in 0 until newPos.length()) {
+                                    adapter.setPositionBoard(newPos.optJSONObject(i).optInt(ConstStrings.BOARD_LINE),
+                                            newPos.optJSONObject(i).optInt(ConstStrings.BOARD_COLUMN),
+                                            newPos.optJSONObject(i).optInt(ConstStrings.BOARD_POS_VALUE))
+                                }
 
-                                    adapter.notifyDataSetChanged()
+                                if (json.optBoolean(ConstStrings.GAME_VALID_PIECE) && newPos != null) {
+                                    runOnUiThread {
+                                        if (currPlayerId != NetworkManager.playerId) {
+                                            adapter.setPlayerMoves(arrayListOf())
+                                        }
+                                        adapter.notifyDataSetChanged()
 
-                                    if (scores.length() == 2) {
-                                        val p1 = scores.getJSONObject(0)
-                                        val p2 = scores.getJSONObject(1)
-                                        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScoree)
-                                                .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME) ?: p1.optInt(ConstStrings.PLAYER_ID).toString())
-                                                .replace("[A]", p1.optString(ConstStrings.PLAYER_SCORE))
-                                                .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME) ?: p2.optInt(ConstStrings.PLAYER_ID).toString())
-                                                .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
-                                    }
+                                        if(currPlayerId == NetworkManager.playerId) {
+                                            if (json.optInt(ConstStrings.GAME_NUMBER_MOVES) > 0) {
+                                                passTurnBtn.visibility = View.GONE
+                                            } else {
+                                                passTurnBtn.visibility = View.VISIBLE
+                                            }
+                                        }
 
-                                    playerTurnInfo.text = "Jogador: " + currPlayer.optInt(ConstStrings.PLAYER_ID).toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
-                                    if (!currPlayer.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
-                                        playerImageView.visibility = View.VISIBLE
-                                        playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(currPlayer.optString(ConstStrings.PLAYER_PHOTO)))
-                                    }
-                                    else {
-                                        playerImageView.visibility = View.GONE
+                                        if (scores.length() == 2) {
+                                            val p1 = scores.getJSONObject(0)
+                                            val p2 = scores.getJSONObject(1)
+                                            pontuacoesInfo.text = resources.getString(R.string.twoPlayerScoree)
+                                                    .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME) ?: p1.optInt(ConstStrings.PLAYER_ID).toString())
+                                                    .replace("[A]", p1.optString(ConstStrings.PLAYER_SCORE))
+                                                    .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME) ?: p2.optInt(ConstStrings.PLAYER_ID).toString())
+                                                    .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
+                                        }
+
+                                        playerTurnInfo.text = "Jogador: " + currPlayer.optInt(ConstStrings.PLAYER_ID).toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
+                                        if (!currPlayer.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
+                                            playerImageView.visibility = View.VISIBLE
+                                            playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(currPlayer.optString(ConstStrings.PLAYER_PHOTO)))
+                                        } else {
+                                            playerImageView.visibility = View.GONE
+                                        }
                                     }
                                 }
                             }
@@ -365,6 +398,10 @@ class GameOnlineActivity : AppCompatActivity() {
             R.id.showMoves -> movesAction()
             R.id.bombTrigger -> bombAction()
             R.id.pieceTrigger -> pieceAction()
+            R.id.updateInfos -> {
+                val json = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_UPDATE_INFOS)
+                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+            }
         }
         return super.onOptionsItemSelected(item)
     }

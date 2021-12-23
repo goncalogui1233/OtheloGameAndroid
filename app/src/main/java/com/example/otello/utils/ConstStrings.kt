@@ -83,4 +83,9 @@ object ConstStrings {
     const val GAME_NEW_POSITIONS = "NewPositions"
     const val GAME_VALID_PIECE = "ValidPlace"
 
+    const val GAME_UPDATE_INFOS = "UpdateInformations"
+
+    const val GAME_NUMBER_MOVES = "NumberMoves"
+
+
 }
