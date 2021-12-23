@@ -160,6 +160,16 @@ class GameOnlineActivity : AppCompatActivity() {
         pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
                 .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
                 .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
+
+        if(it.photo != null) {
+            playerImageView.visibility = View.VISIBLE
+            playerImageView.setImageBitmap(it.photo)
+        }
+        else {
+            playerImageView.visibility = View.GONE
+        }
+
+
     }
 
     private val observeEndGame = Observer<Boolean> {
@@ -218,7 +228,6 @@ class GameOnlineActivity : AppCompatActivity() {
                 try {
                     str = BufferedReader(InputStreamReader(NetworkManager.gameSocket!!.getInputStream())).readLine()
                 }
-                catch (e: SocketTimeoutException){}
                 catch (e: Exception) {
                     return@thread
                 }
@@ -334,6 +343,18 @@ class GameOnlineActivity : AppCompatActivity() {
                                     runOnUiThread {
                                         if (currPlayerId != NetworkManager.playerId) {
                                             adapter.setPlayerMoves(arrayListOf())
+                                        }
+                                        else {
+                                            val moves = json.optJSONArray(ConstStrings.GAME_POSSIBLE_POSITIONS)
+                                            val movesArray = arrayListOf<Posicoes>()
+
+                                            if(moves != null) {
+                                                for (i in 0 until moves.length()) {
+                                                    val movesObj = moves.optJSONObject(i)
+                                                    movesArray.add(Posicoes(movesObj.optInt(ConstStrings.BOARD_LINE), movesObj.optInt(ConstStrings.BOARD_COLUMN)))
+                                                }
+                                            }
+                                            adapter.setPlayerMoves(movesArray)
                                         }
                                         adapter.notifyDataSetChanged()
 
