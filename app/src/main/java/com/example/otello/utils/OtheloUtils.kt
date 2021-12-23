@@ -29,14 +29,14 @@ object OtheloUtils {
 
     fun getStringFromBitmap(bitmap: Bitmap) : String {
         val byteArrayBitmapStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100,
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50,
                 byteArrayBitmapStream)
         val b: ByteArray = byteArrayBitmapStream.toByteArray()
         return Base64.encodeToString(b, Base64.URL_SAFE)
     }
 
     fun getBitmapFromString(bitmap: String) : Bitmap {
-        val decodedString: ByteArray = Base64.decode(bitmap, Base64.URL_SAFE)
+        val decodedString: ByteArray = Base64.decode(bitmap, 0)
         return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
     }
 

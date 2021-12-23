@@ -75,9 +75,9 @@ class GameOnlineActivity : AppCompatActivity() {
                         jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
                         val nextPlayer = JSONObject().put(ConstStrings.PLAYER_ID, v.gameModel.playerTurn.value!!.id)
                                 .put(ConstStrings.PLAYER_NAME, v.gameModel.playerTurn.value!!.name)
-                        //if (turnPlayer.photo != null) {
-                        //    nextPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(turnPlayer.photo!!))
-                        //}
+                        if (v.gameModel.playerTurn.value!!.photo != null) {
+                            nextPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(v.gameModel.playerTurn.value!!.photo!!))
+                        }
 
                         jsonData.put(ConstStrings.CURRENT_PLAYER, nextPlayer)
 
@@ -263,9 +263,10 @@ class GameOnlineActivity : AppCompatActivity() {
                                 }
 
                                 playerTurnInfo.text = "Jogador: " + currPlayerId.toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
-                                if (!currPlayer.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
+                                val photoObj = currPlayer.optJSONObject(ConstStrings.PLAYER_PHOTO)
+                                if (photoObj != null) {
                                     playerImageView.visibility = View.VISIBLE
-                                    playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(currPlayer.optString(ConstStrings.PLAYER_PHOTO)))
+                                    playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(photoObj.optString(ConstStrings.PLAYER_PHOTO)))
                                 }
                             }
                         }
@@ -276,9 +277,10 @@ class GameOnlineActivity : AppCompatActivity() {
 
                             runOnUiThread {
                                 playerTurnInfo.text = "Jogador: " + currPlayerId.toString() + "\nNome: " + player.optString(ConstStrings.PLAYER_NAME)
-                                if (!player.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
+                                val photoObj = player.optJSONObject(ConstStrings.PLAYER_PHOTO)
+                                if (photoObj != null) {
                                     playerImageView.visibility = View.VISIBLE
-                                    playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(player.optString(ConstStrings.PLAYER_PHOTO)))
+                                    playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(photoObj.optString(ConstStrings.PLAYER_PHOTO)))
                                 }
                             }
                         }
@@ -377,9 +379,10 @@ class GameOnlineActivity : AppCompatActivity() {
                                         }
 
                                         playerTurnInfo.text = "Jogador: " + currPlayer.optInt(ConstStrings.PLAYER_ID).toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
-                                        if (!currPlayer.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
+                                        val photoObj = currPlayer.optJSONObject(ConstStrings.PLAYER_PHOTO)
+                                        if (photoObj != null) {
                                             playerImageView.visibility = View.VISIBLE
-                                            playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(currPlayer.optString(ConstStrings.PLAYER_PHOTO)))
+                                            playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(photoObj.optString(ConstStrings.PLAYER_PHOTO)))
                                         } else {
                                             playerImageView.visibility = View.GONE
                                         }

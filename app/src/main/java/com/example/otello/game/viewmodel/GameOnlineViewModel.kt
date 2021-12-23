@@ -7,6 +7,7 @@ import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
 import com.example.otello.network.manager.NetworkManager
 import com.example.otello.utils.ConstStrings
+import com.example.otello.utils.OtheloUtils
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -388,9 +389,10 @@ class GameOnlineViewModel : ViewModel() {
                             val currentPlayer = JSONObject()
                             currentPlayer.put(ConstStrings.PLAYER_ID, gameModel.playerTurn.value!!.id)
                             currentPlayer.put(ConstStrings.PLAYER_NAME, gameModel.playerTurn.value!!.name)
-                         //   if (gameModel.playerTurn.value!!.photo != null) {
-                         //       currentPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(gameModel.playerTurn.value!!.photo!!))
-                         //   }
+                           /* if (gameModel.playerTurn.value!!.photo != null) {
+                                val jsonObject = JSONObject().put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(gameModel.playerTurn.value!!.photo!!))
+                                currentPlayer.put(ConstStrings.PLAYER_PHOTO, jsonObject)
+                            }*/
                             jsonData.put(ConstStrings.CURRENT_PLAYER, currentPlayer)
 
                             NetworkManager.sendInfo(socket, jsonData.toString())
@@ -628,9 +630,12 @@ class GameOnlineViewModel : ViewModel() {
         //Proximo jogador
         val nextPlayer = JSONObject().put(ConstStrings.PLAYER_ID, turnPlayer.id)
                 .put(ConstStrings.PLAYER_NAME, turnPlayer.name)
-        //if (turnPlayer.photo != null) {
-        //    nextPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(turnPlayer.photo!!))
-        //}
+       /* if (turnPlayer.photo != null) {
+            if (gameModel.playerTurn.value!!.photo != null) {
+                val jsonObject = JSONObject().put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(gameModel.playerTurn.value!!.photo!!))
+                nextPlayer.put(ConstStrings.PLAYER_PHOTO, jsonObject)
+            }
+        }*/
 
         jsonData.put(ConstStrings.GAME_PASS_TURN, nextPlayer)
 
