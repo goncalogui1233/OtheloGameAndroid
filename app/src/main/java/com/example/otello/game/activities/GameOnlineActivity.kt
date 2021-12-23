@@ -68,11 +68,17 @@ class GameOnlineActivity : AppCompatActivity() {
 
         passTurnBtn.setOnClickListener {
             when(connType) {
-                ConnType.SERVER -> v.checkNextPlayer()
+                ConnType.SERVER -> {
+                    if(v.gameModel.playerTurn.value?.id == NetworkManager.playerId) {
+                        v.gameModel.playerTurn.value = v.checkNextPlayer()
+                    }
+                }
                 ConnType.CLIENT -> {
-                    val json = JSONObject()
-                    json.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
-                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                    if(currPlayerId == NetworkManager.playerId) {
+                        val json = JSONObject()
+                        json.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
+                        NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                    }
                 }
             }
         }
@@ -231,6 +237,19 @@ class GameOnlineActivity : AppCompatActivity() {
                             }
                         }
 
+                        ConstStrings.GAME_PASS_TURN -> {
+                            val player = json.optJSONObject(ConstStrings.CURRENT_PLAYER)
+                            currPlayerId = player.optInt(ConstStrings.PLAYER_ID)
+
+                            runOnUiThread {
+                                playerTurnInfo.text = "Jogador: " + currPlayerId.toString() + "\nNome: " + player.optString(ConstStrings.PLAYER_NAME)
+                                if (!player.optString(ConstStrings.PLAYER_PHOTO).isNullOrEmpty()) {
+                                    playerImageView.visibility = View.VISIBLE
+                                    playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(player.optString(ConstStrings.PLAYER_PHOTO)))
+                                }
+                            }
+                        }
+
                         ConstStrings.GAME_BOMB_MOVE_ANSWER -> {
                             when (json.optString(ConstStrings.STATUS)) {
                                 ConstStrings.GAME_BOMB_MOVE_ACTIVATED -> {
@@ -342,16 +361,11 @@ class GameOnlineActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
         when(item.itemId) {
-
             R.id.showMoves -> movesAction()
-
             R.id.bombTrigger -> bombAction()
-
             R.id.pieceTrigger -> pieceAction()
         }
-
         return super.onOptionsItemSelected(item)
     }
 

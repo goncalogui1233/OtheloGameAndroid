@@ -396,7 +396,21 @@ class GameOnlineViewModel : ViewModel() {
                             NetworkManager.sendInfo(socket, jsonData.toString())
                         }
 
-                        ConstStrings.GAME_PASS_TURN -> gameModel.playerTurn.postValue(checkNextPlayer())
+                        ConstStrings.GAME_PASS_TURN -> {
+                            val nextPlayer = checkNextPlayer()
+                            gameModel.playerTurn.postValue(nextPlayer)
+                            gameModel.playPositions.postValue(getPossiblePositions(nextPlayer))
+                            val jsonData = JSONObject()
+                            jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
+                            jsonData.put(ConstStrings.CURRENT_PLAYER, JSONObject().put(ConstStrings.PLAYER_ID, nextPlayer.id)
+                                    .put(ConstStrings.PLAYER_NAME, nextPlayer.name))
+
+                            for(i in gameModel.numJogadores.value!!) {
+                                if(i.gameSocket != null) {
+                                    NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                                }
+                            }
+                        }
 
                         ConstStrings.GAME_PLAYER_SEE_MOVES -> {
                             if(gameModel.playerTurn.value?.seeMoves!!) {
