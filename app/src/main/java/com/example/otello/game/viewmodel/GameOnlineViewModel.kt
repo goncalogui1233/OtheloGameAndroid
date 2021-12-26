@@ -1,10 +1,8 @@
 package com.example.otello.game.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.otello.game.model.AddedPosition
-import com.example.otello.game.model.GameModel
-import com.example.otello.game.model.Jogador
-import com.example.otello.game.model.Posicoes
+import com.example.otello.game.model.*
 import com.example.otello.network.manager.NetworkManager
 import com.example.otello.utils.ConstStrings
 import com.example.otello.utils.OtheloUtils
@@ -188,7 +186,7 @@ class GameOnlineViewModel : ViewModel() {
                 }
             }
         }
-        gameModel.endGame.postValue(true)
+        gameModel.endGame.postValue(EndGameStates.FINISHED)
     }
 
     /**
@@ -534,9 +532,19 @@ class GameOnlineViewModel : ViewModel() {
                             NetworkManager.sendInfo(socket, jsonObject.toString())
                         }
 
+                        ConstStrings.GAME_END_ABRUPTLY -> {
+                            gameModel.endGame.postValue(EndGameStates.ABRUPTLY)
+                            val jsonData = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
 
+                            for(i in gameModel.numJogadores.value!!) {
+                                if(i.gameSocket != null && socket != i.gameSocket) {
+                                    NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                                }
+                            }
+                        }
                     }
                 } catch (e: JSONException) {
+                    Log.e("Receive Info Client", e.toString())
                 }
             }
         }
@@ -546,6 +554,20 @@ class GameOnlineViewModel : ViewModel() {
         for (p in gameModel.numJogadores.value!!) {
             if (p.gameSocket != null) {
                 receiveInfoFromClients(p.gameSocket!!)
+            }
+        }
+    }
+
+    /**
+     * Warns every player that the server ended the game abruptly
+     */
+    fun sairJogo() {
+        val json = JSONObject()
+        json.put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
+
+        for (p in gameModel.numJogadores.value!!) {
+            if (p.gameSocket != null) {
+                NetworkManager.sendInfo(p.gameSocket!!, json.toString())
             }
         }
     }

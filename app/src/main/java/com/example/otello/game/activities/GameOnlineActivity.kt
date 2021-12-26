@@ -1,6 +1,7 @@
 package com.example.otello.game.activities
 
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
+import com.example.otello.game.model.EndGameStates
 import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
@@ -21,6 +23,7 @@ import com.example.otello.utils.OtheloUtils
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_game.*
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -38,6 +41,7 @@ class GameOnlineActivity : AppCompatActivity() {
     var connType : ConnType? = null
     var gameMode : String = ""
     var currPlayerId : Int = -1
+    var gameRunning = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -172,29 +176,43 @@ class GameOnlineActivity : AppCompatActivity() {
 
     }
 
-    private val observeEndGame = Observer<Boolean> {
-        if(it){
-            if(v.gameModel.numJogadores.value != null) {
-                var winner = v.gameModel.numJogadores.value!![0]
-                for (i in 1 until v.gameModel.numJogadores.value?.size!!) {
-                    if(v.gameModel.numJogadores.value!![i].score > winner.score){
-                        winner = v.gameModel.numJogadores.value!![i]
-                    }
-                }
+    private val observeEndGame = Observer<EndGameStates> {
+        when(it){
 
+            EndGameStates.FINISHED -> {
+                if (v.gameModel.numJogadores.value != null) {
+                    var winner = v.gameModel.numJogadores.value!![0]
+                    for (i in 1 until v.gameModel.numJogadores.value?.size!!) {
+                        if (v.gameModel.numJogadores.value!![i].score > winner.score) {
+                            winner = v.gameModel.numJogadores.value!![i]
+                        }
+                    }
+
+                    AlertDialog.Builder(this)
+                            .setTitle(resources.getString(R.string.endGame))
+                            .setMessage(resources.getString(R.string.finalMessage)
+                                    .replace("[X]", winner.id.toString())
+                                    .replace("[Y]", winner.score.toString()))
+                            .setCancelable(false)
+                            .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                                finish()
+                            }
+                            .show()
+                }
+            }
+
+            EndGameStates.ABRUPTLY -> {
                 AlertDialog.Builder(this)
                         .setTitle(resources.getString(R.string.endGame))
-                        .setMessage(resources.getString(R.string.finalMessage)
-                                .replace("[X]", winner.id.toString())
-                                .replace("[Y]", winner.score.toString()))
+                        .setMessage(resources.getString(R.string.endGameAbruptly))
                         .setCancelable(false)
                         .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                             finish()
                         }
                         .show()
-
             }
         }
+
     }
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
@@ -223,7 +241,7 @@ class GameOnlineActivity : AppCompatActivity() {
             json.put(ConstStrings.TYPE, ConstStrings.CLIENT_WANT_DATA)
             NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
 
-            while (true) {
+            while (gameRunning) {
                 var str: String = ""
                 try {
                     str = BufferedReader(InputStreamReader(NetworkManager.gameSocket!!.getInputStream())).readLine()
@@ -232,7 +250,12 @@ class GameOnlineActivity : AppCompatActivity() {
                     return@thread
                 }
 
-                if (str != "") {
+                //If something makes this var false, it means that the game has ended
+                if(!gameRunning) {
+                    return@thread
+                }
+
+                try {
                     val json = JSONObject(str)
                     when (json.optString(ConstStrings.TYPE)) {
                         ConstStrings.GAME_INIT_INFOS -> {
@@ -405,7 +428,23 @@ class GameOnlineActivity : AppCompatActivity() {
                                 adapter.notifyDataSetChanged()
                             }
                         }
+
+                        ConstStrings.GAME_END_ABRUPTLY -> {
+                            gameRunning = false
+                            runOnUiThread {
+                                AlertDialog.Builder(this)
+                                        .setTitle(resources.getString(R.string.endGame))
+                                        .setMessage(resources.getString(R.string.endGameAbruptly))
+                                        .setCancelable(false)
+                                        .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                                            finish()
+                                        }
+                                        .show()
+                            }
+                        }
                     }
+                } catch (e : JSONException) {
+                    Log.i("GameOnlineActivity", e.printStackTrace().toString())
                 }
             }
         }
@@ -521,9 +560,21 @@ class GameOnlineActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        when(connType) {
+            ConnType.SERVER -> {
+                v.sairJogo()
+                GameModel.resetGameModel()
+            }
 
-        GameModel.resetGameModel()
+            ConnType.CLIENT -> {
+                gameRunning = false
+                val json = JSONObject()
+                json.put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
+                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+            }
+        }
+
+        super.onDestroy()
     }
 
 }

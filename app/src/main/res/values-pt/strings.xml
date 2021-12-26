@@ -29,4 +29,5 @@
     <string name="noPieceMoveAgain">Não pode ativar o special de mudar peças novamente</string>
     <string name="moves">Mostrar movimentos possíveis</string>
     <string name="updateInfos">Atualizar informações do jogo</string>
+    <string name="endGameAbruptly">Alguém saiu do jogo, o jogo terminou</string>
 </resources>

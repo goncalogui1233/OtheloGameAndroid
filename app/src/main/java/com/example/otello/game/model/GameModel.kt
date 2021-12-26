@@ -10,7 +10,7 @@ object GameModel {
     var boardDimensions = MutableLiveData<Int>()
     var playPositions = MutableLiveData<ArrayList<Posicoes>>()
 
-    var endGame = MutableLiveData(false)
+    var endGame = MutableLiveData(EndGameStates.PLAYING)
     var bombMove = MutableLiveData(false)
     var changePiecesMove = MutableLiveData(false)
 
@@ -397,7 +397,7 @@ object GameModel {
         bombMove = MutableLiveData(false)
         changePiecesMove = MutableLiveData(false)
         board = MutableLiveData<Array<IntArray>>()
-        endGame= MutableLiveData(false)
+        endGame= MutableLiveData(EndGameStates.PLAYING)
     }
 
 

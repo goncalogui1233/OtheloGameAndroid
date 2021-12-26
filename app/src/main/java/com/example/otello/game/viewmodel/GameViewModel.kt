@@ -1,6 +1,7 @@
 package com.example.otello.game.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.example.otello.game.model.EndGameStates
 import com.example.otello.game.model.GameModel
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
@@ -185,7 +186,7 @@ class GameViewModel : ViewModel(){
                 }
             }
         }
-        gameModel.endGame.postValue(true)
+        gameModel.endGame.postValue(EndGameStates.FINISHED)
     }
 
     /**

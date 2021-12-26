@@ -16,7 +16,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Otello">
+        android:theme="@style/Theme.Otello"
+        android:usesCleartextTraffic="true">
         <activity android:name=".network.activities.NetworkActivity"
             android:label="@string/title_lobby"/>
         <activity android:name=".ProfileActivity" />

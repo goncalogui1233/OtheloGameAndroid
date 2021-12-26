@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.otello.game.model.Posicoes
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
+import com.example.otello.game.model.EndGameStates
 import com.example.otello.game.model.GameModel
 import com.example.otello.game.viewmodel.GameViewModel
 import com.example.otello.game.model.Jogador
@@ -90,8 +91,8 @@ class GameActivity : AppCompatActivity() {
             .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
     }
 
-    private val observeEndGame = Observer<Boolean> {
-        if(it){
+    private val observeEndGame = Observer<EndGameStates> {
+        if(it == EndGameStates.FINISHED){
             if(v.gameModel.numJogadores.value != null) {
                 var winner = v.gameModel.numJogadores.value!![0]
                 for (i in 1 until v.gameModel.numJogadores.value?.size!!) {

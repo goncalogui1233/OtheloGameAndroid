@@ -37,6 +37,8 @@
     <string name="moves">Show possible moves</string>
     <string name="updateInfos">Update Game Infos</string>
 
+    <string name="endGameAbruptly">Someone left the game, the game is finished</string>
+
 
 
 </resources>

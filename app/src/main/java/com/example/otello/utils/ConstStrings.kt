@@ -87,5 +87,7 @@ object ConstStrings {
 
     const val GAME_NUMBER_MOVES = "NumberMoves"
 
+    const val GAME_END_ABRUPTLY = "GameEndedAbruptly"
+
 
 }
