@@ -510,10 +510,9 @@ class GameOnlineViewModel : ViewModel() {
                                 } else {
                                     jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PUT_NEW_PIECE)
                                     jsonData.put(ConstStrings.GAME_VALID_PIECE, false)
+                                    NetworkManager.sendInfo(socket, jsonData.toString())
                                 }
                             }
-
-                            NetworkManager.sendInfo(socket, jsonData.toString())
                         }
 
                         ConstStrings.GAME_UPDATE_INFOS -> {
