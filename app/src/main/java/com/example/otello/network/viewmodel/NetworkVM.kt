@@ -52,7 +52,7 @@ class NetworkVM : ViewModel(){
                         if (socket != null) {
                             val socket2 = this?.accept()
                             val p = Jogador(clientsConnected.value!! + 1)
-                            p.socket = socket
+                            p.lobbySocket = socket
                             p.gameSocket = socket2
                             clientsConnected.postValue(clientsConnected.value!! + 1)
                             jogadores.add(p)
@@ -70,7 +70,7 @@ class NetworkVM : ViewModel(){
             while(!checkServerInfos) {
                 var str = ""
                 try {
-                    str = BufferedReader(InputStreamReader(player.socket?.getInputStream())).readLine()
+                    str = BufferedReader(InputStreamReader(player.lobbySocket?.getInputStream())).readLine()
                 }
                 catch (e: Exception) {
                     Log.i("InfoToServer", "Error in read")
@@ -97,12 +97,12 @@ class NetworkVM : ViewModel(){
                                 jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
                                 jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_RESPONSE_ACCEPTED)
                                 jsonObj.put(ConstStrings.PLAYER_ID, player.id)
-                                NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+                                NetworkManager.sendInfo(player.lobbySocket!!, jsonObj.toString())
                             } else {
                                 val jsonObj = JSONObject()
                                 jsonObj.put(ConstStrings.TYPE, ConstStrings.PLAYER_INFO_RESPONSE)
                                 jsonObj.put(ConstStrings.PLAYER_INFO_RESPONSE_VALID, ConstStrings.PLAYER_INFO_TOO_MANY_PLAYERS)
-                                NetworkManager.sendInfo(player.socket!!, jsonObj.toString())
+                                NetworkManager.sendInfo(player.lobbySocket!!, jsonObj.toString())
                                 clientsConnected.postValue(clientsConnected.value!! - 1)
                                 jogadores.remove(player)
                                 return@thread
@@ -131,8 +131,8 @@ class NetworkVM : ViewModel(){
         json.put(ConstStrings.TYPE, ConstStrings.START_GAME)
 
         for(p in jogadores) {
-            if(p.socket != null) {
-                NetworkManager.sendInfo(p.socket!!, json.toString())
+            if(p.lobbySocket != null) {
+                NetworkManager.sendInfo(p.lobbySocket!!, json.toString())
             }
         }
     }
@@ -150,8 +150,8 @@ class NetworkVM : ViewModel(){
             val json = JSONObject()
             json.put(ConstStrings.TYPE, ConstStrings.STOP_GAME)
             for(p in jogadores) {
-                if(p.socket != null) {
-                    NetworkManager.sendInfo(p.socket!!, json.toString())
+                if(p.lobbySocket != null) {
+                    NetworkManager.sendInfo(p.lobbySocket!!, json.toString())
                 }
             }
         }

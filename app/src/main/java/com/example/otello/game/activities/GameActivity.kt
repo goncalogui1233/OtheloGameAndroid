@@ -11,15 +11,12 @@ import com.example.otello.game.model.Posicoes
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
 import com.example.otello.game.model.EndGameStates
-import com.example.otello.game.model.GameModel
+import com.example.otello.game.repository.GameRepository
 import com.example.otello.game.viewmodel.GameViewModel
 import com.example.otello.game.model.Jogador
-import com.example.otello.network.manager.NetworkManager
 import com.example.otello.network.model.ConnType
-import com.example.otello.utils.ConstStrings
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_game.*
-import org.json.JSONObject
 import kotlin.random.Random
 
 class GameActivity : AppCompatActivity() {
@@ -194,7 +191,7 @@ class GameActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        GameModel.resetGameModel()
+        GameRepository.resetGameModel()
     }
 
 }

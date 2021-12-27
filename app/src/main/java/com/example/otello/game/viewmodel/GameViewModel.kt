@@ -2,24 +2,13 @@ package com.example.otello.game.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.EndGameStates
-import com.example.otello.game.model.GameModel
+import com.example.otello.game.repository.GameRepository
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
-import com.example.otello.network.manager.NetworkManager
-import com.example.otello.utils.ConstStrings
-import com.example.otello.utils.OtheloUtils
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.lang.Exception
-import java.net.Socket
-import kotlin.concurrent.thread
 
 class GameViewModel : ViewModel(){
     
-    val gameModel = GameModel
+    val gameModel = GameRepository
 
     fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
@@ -114,32 +103,32 @@ class GameViewModel : ViewModel(){
         }
 
         //Diagonal Top Right
-        if(line - 1 >= 0 && column + 1 < GameModel.boardDimensions.value!!){
+        if(line - 1 >= 0 && column + 1 < GameRepository.boardDimensions.value!!){
             copyBoard[line-1][column+1] = 0
         }
 
         //Right
-        if(column + 1 < GameModel.boardDimensions.value!!){
+        if(column + 1 < GameRepository.boardDimensions.value!!){
             copyBoard[line][column+1] = 0
         }
 
         //Diagonal Bottom Right
-        if(line + 1 < GameModel.boardDimensions.value!! && column + 1 < GameModel.boardDimensions.value!!){
+        if(line + 1 < GameRepository.boardDimensions.value!! && column + 1 < GameRepository.boardDimensions.value!!){
             copyBoard[line+1][column+1] = 0
         }
 
         //Bottom
-        if(line + 1 < GameModel.boardDimensions.value!!){
+        if(line + 1 < GameRepository.boardDimensions.value!!){
             copyBoard[line+1][column] = 0
         }
 
         //Diagonal Bottom Left
-        if(line + 1 < GameModel.boardDimensions.value!! && column - 1 >= 0){
+        if(line + 1 < GameRepository.boardDimensions.value!! && column - 1 >= 0){
             copyBoard[line+1][column-1] = 0
         }
 
         //Desliga o special no modelo do jogo
-        GameModel.bombMove.value = false
+        GameRepository.bombMove.value = false
 
         return copyBoard
     }
@@ -150,19 +139,19 @@ class GameViewModel : ViewModel(){
      * Position 2 -> Piece from the other player
      */
     fun changePieceMove(){
-        val copyBoard = GameModel.board.value!!
-        val currPlayerPiece = copyBoard[GameModel.changePieceArray[0].linha][GameModel.changePieceArray[0].coluna]
-        val otherPlayerPiece = copyBoard[GameModel.changePieceArray[2].linha][GameModel.changePieceArray[2].coluna]
+        val copyBoard = GameRepository.board.value!!
+        val currPlayerPiece = copyBoard[GameRepository.changePieceArray[0].linha][GameRepository.changePieceArray[0].coluna]
+        val otherPlayerPiece = copyBoard[GameRepository.changePieceArray[2].linha][GameRepository.changePieceArray[2].coluna]
 
         //Altera as peças no board
-        copyBoard[GameModel.changePieceArray[0].linha][GameModel.changePieceArray[0].coluna] = otherPlayerPiece
-        copyBoard[GameModel.changePieceArray[1].linha][GameModel.changePieceArray[1].coluna] = otherPlayerPiece
-        copyBoard[GameModel.changePieceArray[2].linha][GameModel.changePieceArray[2].coluna] = currPlayerPiece
+        copyBoard[GameRepository.changePieceArray[0].linha][GameRepository.changePieceArray[0].coluna] = otherPlayerPiece
+        copyBoard[GameRepository.changePieceArray[1].linha][GameRepository.changePieceArray[1].coluna] = otherPlayerPiece
+        copyBoard[GameRepository.changePieceArray[2].linha][GameRepository.changePieceArray[2].coluna] = currPlayerPiece
 
         //Altera a propriedade para o jogador não poder usar este special
-        GameModel.playerTurn.value?.pieceChange = false
+        GameRepository.playerTurn.value?.pieceChange = false
         //Desliga o special no jogo
-        GameModel.changePiecesMove.value = false
+        GameRepository.changePiecesMove.value = false
 
         //Alterar as pontuações dos jogadores
         alterarPontuacoes(copyBoard)

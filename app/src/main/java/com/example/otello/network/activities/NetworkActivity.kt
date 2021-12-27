@@ -13,17 +13,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
-import com.example.otello.game.activities.GameActivity
 import com.example.otello.game.activities.GameOnlineActivity
-import com.example.otello.game.model.GameModel
-import com.example.otello.network.manager.NetworkManager
+import com.example.otello.game.repository.GameRepository
 import com.example.otello.network.model.ConnType
 import com.example.otello.network.model.LobbyStates
 import com.example.otello.network.viewmodel.NetworkVM
 import com.example.otello.utils.ConstStrings
 import com.example.otello.utils.OtheloUtils
 import kotlinx.android.synthetic.main.activity_network.*
-import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 
 
@@ -62,7 +59,7 @@ class NetworkActivity : AppCompatActivity() {
 
             btnStartGame.setOnClickListener {
                 btnStartGame.isEnabled = false
-                GameModel.numJogadores.value = networkVM!!.jogadores
+                GameRepository.numJogadores.value = networkVM!!.jogadores
                 networkVM!!.checkServerInfos = true
                 networkVM!!.stopServerSocket()
                 networkVM!!.startGame()

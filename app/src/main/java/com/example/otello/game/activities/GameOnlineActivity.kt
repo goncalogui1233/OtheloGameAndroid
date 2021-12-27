@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
 import com.example.otello.game.model.EndGameStates
-import com.example.otello.game.model.GameModel
+import com.example.otello.game.repository.GameRepository
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
 import com.example.otello.game.viewmodel.GameOnlineViewModel
@@ -75,24 +75,7 @@ class GameOnlineActivity : AppCompatActivity() {
         passTurnBtn.setOnClickListener {
             when(connType) {
                 ConnType.SERVER -> {
-                    if(v.gameModel.playerTurn.value?.id == NetworkManager.playerId) {
-                        v.gameModel.playerTurn.value = v.checkNextPlayer()
-                        val jsonData = JSONObject()
-                        jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
-                        val nextPlayer = JSONObject().put(ConstStrings.PLAYER_ID, v.gameModel.playerTurn.value!!.id)
-                                .put(ConstStrings.PLAYER_NAME, v.gameModel.playerTurn.value!!.name)
-                        if (v.gameModel.playerTurn.value!!.photo != null) {
-                            nextPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(v.gameModel.playerTurn.value!!.photo!!))
-                        }
-
-                        jsonData.put(ConstStrings.CURRENT_PLAYER, nextPlayer)
-
-                        for(i in v.gameModel.numJogadores.value!!) {
-                            if(i.gameSocket != null) {
-                                NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
-                            }
-                        }
-                    }
+                    v.passTurn()
                 }
                 ConnType.CLIENT -> {
                     if(currPlayerId == NetworkManager.playerId) {
@@ -232,6 +215,14 @@ class GameOnlineActivity : AppCompatActivity() {
             adapter.notifyDataSetChanged()
         }
 
+        //If the current player cannot play, we should save that
+        if(it.size == 0) {
+            v.gameModel.playerTurn.value!!.hadMoves = false
+        }
+
+        //Check if all the players can play
+        v.checkPlay()
+
         if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
             if(v.gameModel.playPositions.value!!.size > 0) {
                 passTurnBtn.visibility = View.GONE
@@ -315,6 +306,8 @@ class GameOnlineActivity : AppCompatActivity() {
                                     playerImageView.visibility = View.VISIBLE
                                     playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(photoObj.optString(ConstStrings.PLAYER_PHOTO)))
                                 }
+                                val json = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_UPDATE_INFOS)
+                                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
                             }
                         }
 
@@ -441,6 +434,7 @@ class GameOnlineActivity : AppCompatActivity() {
 
                         ConstStrings.GAME_END_ABRUPTLY -> {
                             gameRunning = false
+                            winnerObsTriggered = true
                             val name = json.optString(ConstStrings.PLAYER_NAME)
                             val score = json.optInt(ConstStrings.PLAYER_SCORE)
                             runOnUiThread {
@@ -611,14 +605,16 @@ class GameOnlineActivity : AppCompatActivity() {
                     v.serverLeaveGame()
                     postFirestoreData(v.gameModel.playerWinner.value!!)
                 }
-                GameModel.resetGameModel()
+                GameRepository.resetGameModel()
             }
 
             ConnType.CLIENT -> {
                 gameRunning = false
-                val json = JSONObject()
-                json.put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
-                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                if (winnerObsTriggered) {
+                    val json = JSONObject()
+                    json.put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
+                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                }
             }
         }
 

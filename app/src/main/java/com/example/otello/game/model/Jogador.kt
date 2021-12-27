@@ -14,7 +14,7 @@ class Jogador : Serializable{
     var seeMoves : Boolean
     var score : Int = 0
     var photo : Bitmap? = null
-    var socket : Socket? = null
+    var lobbySocket : Socket? = null
     var gameSocket : Socket? = null
 
     constructor(id : Int) {

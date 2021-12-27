@@ -1,8 +1,11 @@
-package com.example.otello.game.model
+package com.example.otello.game.repository
 
 import androidx.lifecycle.MutableLiveData
+import com.example.otello.game.model.EndGameStates
+import com.example.otello.game.model.Jogador
+import com.example.otello.game.model.Posicoes
 
-object GameModel {
+object GameRepository {
 
     var board = MutableLiveData<Array<IntArray>>()
     var playerTurn = MutableLiveData<Jogador>()
@@ -363,31 +366,45 @@ object GameModel {
         }
 
         //Diagonal Top Right
-        if (line - 1 >= 0 && column + 1 < GameModel.boardDimensions.value!!) {
+        if (line - 1 >= 0 && column + 1 < boardDimensions.value!!) {
             copyBoard[line - 1][column + 1] = 0
         }
 
         //Right
-        if (column + 1 < GameModel.boardDimensions.value!!) {
+        if (column + 1 < boardDimensions.value!!) {
             copyBoard[line][column + 1] = 0
         }
 
         //Diagonal Bottom Right
-        if (line + 1 < GameModel.boardDimensions.value!! && column + 1 < GameModel.boardDimensions.value!!) {
+        if (line + 1 < boardDimensions.value!! && column + 1 < boardDimensions.value!!) {
             copyBoard[line + 1][column + 1] = 0
         }
 
         //Bottom
-        if (line + 1 < GameModel.boardDimensions.value!!) {
+        if (line + 1 < boardDimensions.value!!) {
             copyBoard[line + 1][column] = 0
         }
 
         //Diagonal Bottom Left
-        if (line + 1 < GameModel.boardDimensions.value!! && column - 1 >= 0) {
+        if (line + 1 < boardDimensions.value!! && column - 1 >= 0) {
             copyBoard[line + 1][column - 1] = 0
         }
 
         return copyBoard
+    }
+
+    /**
+     * Function that checks if all the players still can play in the game
+     * In case not, the game ends
+     */
+    fun checkPlayerMoves() {
+        for(i in numJogadores.value!!) {
+            if(i.hadMoves) {
+                return
+            }
+        }
+
+        endGame.postValue(EndGameStates.FINISHED)
     }
 
     fun resetGameModel() {

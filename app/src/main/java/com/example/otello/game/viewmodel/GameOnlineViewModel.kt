@@ -3,8 +3,10 @@ package com.example.otello.game.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.*
+import com.example.otello.game.repository.GameRepository
 import com.example.otello.network.manager.NetworkManager
 import com.example.otello.utils.ConstStrings
+import com.example.otello.utils.OtheloUtils
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -16,7 +18,7 @@ import kotlin.concurrent.thread
 
 class GameOnlineViewModel : ViewModel() {
 
-    val gameModel = GameModel
+    val gameModel = GameRepository
 
     fun initBoard() {
         //Organize board when numJogadores = 2
@@ -187,6 +189,9 @@ class GameOnlineViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Function that checks if the board is already complete
+     */
     fun estadoJogo(board: Array<IntArray>) {
         for (i in 0 until gameModel.boardDimensions.value!!) {
             for (j in 0 until gameModel.boardDimensions.value!!) {
@@ -196,6 +201,13 @@ class GameOnlineViewModel : ViewModel() {
             }
         }
         gameModel.endGame.postValue(EndGameStates.FINISHED)
+    }
+
+    /**
+     * Function that check if a player still can play
+     */
+    fun checkPlay() {
+        gameModel.checkPlayerMoves()
     }
 
     /**
@@ -555,6 +567,29 @@ class GameOnlineViewModel : ViewModel() {
         for (p in gameModel.numJogadores.value!!) {
             if (p.gameSocket != null) {
                 receiveInfoFromClients(p.gameSocket!!)
+            }
+        }
+    }
+
+    fun passTurn() {
+        if(gameModel.playerTurn.value?.id == NetworkManager.playerId) {
+            gameModel.playerTurn.value = checkNextPlayer()
+            gameModel.playPositions.value = getPossiblePositions(gameModel.playerTurn.value!!)
+
+            val jsonData = JSONObject()
+            jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
+            val nextPlayer = JSONObject().put(ConstStrings.PLAYER_ID, gameModel.playerTurn.value!!.id)
+                    .put(ConstStrings.PLAYER_NAME, gameModel.playerTurn.value!!.name)
+            if (gameModel.playerTurn.value!!.photo != null) {
+                nextPlayer.put(ConstStrings.PLAYER_PHOTO, OtheloUtils.getStringFromBitmap(gameModel.playerTurn.value!!.photo!!))
+            }
+
+            jsonData.put(ConstStrings.CURRENT_PLAYER, nextPlayer)
+
+            for(i in gameModel.numJogadores.value!!) {
+                if(i.gameSocket != null) {
+                    NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                }
             }
         }
     }
