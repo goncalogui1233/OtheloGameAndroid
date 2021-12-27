@@ -43,7 +43,7 @@ class GameActivity : AppCompatActivity() {
         v.gameModel.endGame.observe(this, observeEndGame)
 
         //Setting the Adapter, Dimensions and ClickListener for Grid
-        adapter = GridAdapter(this, v.gameModel.board.value!!)
+        adapter = GridAdapter(this, v.gameModel.board.value!!, v.gameModel.boardDimensions.value!!)
         boardGrid.numColumns = v.gameModel.boardDimensions.value!!
         boardGrid.adapter = adapter
         boardGrid.setOnItemClickListener { _, _, i, _ ->

@@ -53,7 +53,7 @@ class GameOnlineActivity : AppCompatActivity() {
 
         if(connType == ConnType.SERVER) {
             v = ViewModelProvider(this).get(GameOnlineViewModel::class.java)
-            v.initBoard(boardD * boardD, boardD, 2)
+            v.initBoard()
             v.gameModel.board.observe(this, observeBoard)
             v.gameModel.playerTurn.observe(this, observePlayerTurn)
             v.gameModel.playPositions.observe(this, observePlayerMoves)
@@ -107,7 +107,7 @@ class GameOnlineActivity : AppCompatActivity() {
 
     private fun setGridView(isServer : Boolean) {
         if(isServer) {
-            adapter = GridAdapter(this, v.gameModel.board.value!!)
+            adapter = GridAdapter(this, v.gameModel.board.value!!, v.gameModel.boardDimensions.value!!)
             boardGrid.numColumns = v.gameModel.boardDimensions.value!!
         }
         else {
@@ -116,10 +116,9 @@ class GameOnlineActivity : AppCompatActivity() {
         }
         boardGrid.adapter = adapter
         boardGrid.setOnItemClickListener { _, _, i, _ ->
-            val linha = i / 8
-            val coluna = i.rem(8)
-
             if(isServer) {
+                val linha = i / v.gameModel.boardDimensions.value!!
+                val coluna = i.rem(v.gameModel.boardDimensions.value!!)
                 if (v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
                     if (v.gameModel.changePiecesMove.value!!) {
                         v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
@@ -133,6 +132,8 @@ class GameOnlineActivity : AppCompatActivity() {
                 }
             }
             else {
+                val linha = i / boardD
+                val coluna = i.rem(boardD)
                 if (currPlayerId == NetworkManager.playerId) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)

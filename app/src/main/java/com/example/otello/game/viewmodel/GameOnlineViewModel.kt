@@ -18,13 +18,11 @@ class GameOnlineViewModel : ViewModel() {
 
     val gameModel = GameModel
 
-    fun initBoard(boardSize: Int, boardDimen: Int, numPlayers: Int) {
-        //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
-        gameModel.board.value = Array(boardSize) { IntArray(boardSize) }
-        gameModel.boardDimensions.value = boardDimen
-
+    fun initBoard() {
         //Organize board when numJogadores = 2
         if (gameModel.numJogadores.value?.size == 2) {
+            gameModel.board.value = Array(64) { IntArray(8) }
+            gameModel.boardDimensions.value = 8
             gameModel.board.value!![3][3] = 1
             gameModel.board.value!![3][4] = 2
             gameModel.board.value!![4][3] = 2
@@ -33,6 +31,8 @@ class GameOnlineViewModel : ViewModel() {
             gameModel.occupiedPlaces.postValue(4)
         } //Organize board when numJogadores = 3
         else if (gameModel.numJogadores.value?.size == 3) {
+            gameModel.board.value = Array(100) { IntArray(10) }
+            gameModel.boardDimensions.value = 10
             gameModel.board.value!![2][4] = 1
             gameModel.board.value!![2][5] = 2
             gameModel.board.value!![3][4] = 2

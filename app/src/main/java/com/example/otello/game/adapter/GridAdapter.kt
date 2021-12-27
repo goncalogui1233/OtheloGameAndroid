@@ -2,6 +2,7 @@ package com.example.otello.game.adapter
 
 import android.content.Context
 import android.graphics.Color
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,15 +17,18 @@ class GridAdapter : BaseAdapter {
     private var context: Context? = null
     private var gridContent: Array<IntArray>? = null
     private var playerMoves : ArrayList<Posicoes>? = null
+    private var mBoardSize : Int = 0
 
-    constructor(c: Context?, content: Array<IntArray>) {
+    constructor(c: Context?, content: Array<IntArray>, boardSize: Int) {
         context = c
         gridContent = content
+        mBoardSize = boardSize
     }
 
     constructor(c : Context, boardSize : Int) {
         context = c
         gridContent = Array(boardSize*boardSize) { IntArray(boardSize)}
+        mBoardSize = boardSize
     }
 
     fun setBoardContent(array: Array<IntArray>){
@@ -56,8 +60,14 @@ class GridAdapter : BaseAdapter {
 
         val v = LayoutInflater.from(context).inflate(R.layout.square_view, group, false)
 
-        val l = position / 8
-        val c = position.rem(8)
+        val displayMetrics = context!!.resources.displayMetrics
+        val squareDim = displayMetrics.widthPixels / mBoardSize
+
+        val layoutParams = ViewGroup.LayoutParams(squareDim, squareDim)
+        v.layoutParams = layoutParams
+
+        val l = position / mBoardSize
+        val c = position.rem(mBoardSize)
 
         if(gridContent!![l][c] != 0) {
             v.cardView_square.visibility = View.VISIBLE
