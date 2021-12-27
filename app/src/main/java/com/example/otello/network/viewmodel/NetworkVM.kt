@@ -33,7 +33,7 @@ class NetworkVM : ViewModel(){
 
     //Server Functions
 
-    fun initServer(nome: String, image: Bitmap){
+    fun initServer(nome: String, image: Bitmap?){
         //Adicionar o próprio jogador à lista
         val pl = Jogador(clientsConnected.value!!)
         pl.name = nome

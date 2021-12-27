@@ -51,9 +51,11 @@ class NetworkActivity : AppCompatActivity() {
 
             //Create the bitmap to add to player object
             val imageBitmap = BitmapFactory.decodeFile(playerPhotoPath)
-            val rotation = OtheloUtils.rotateBitmap(playerPhotoPath)
-            val realBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height, rotation, true)
-
+            var realBitmap : Bitmap? = null
+            if(imageBitmap != null) {
+                val rotation = OtheloUtils.rotateBitmap(playerPhotoPath)
+                realBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height, rotation, true)
+            }
             networkVM!!.initServer(playerName, realBitmap)
             ipTextView.text = ipAddress
             networkVM!!.clientsConnected.observe(this, observeNumClients)
