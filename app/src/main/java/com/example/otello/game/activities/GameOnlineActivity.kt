@@ -225,7 +225,13 @@ class GameOnlineActivity : AppCompatActivity() {
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
         if(shouldSeeMoves) {
-            adapter.setPlayerMoves(it)
+            if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                adapter.setPlayerMoves(it)
+            }
+            else {
+                adapter.setPlayerMoves(arrayListOf())
+            }
+
             adapter.notifyDataSetChanged()
         }
 
