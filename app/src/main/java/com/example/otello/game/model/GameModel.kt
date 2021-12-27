@@ -9,6 +9,8 @@ object GameModel {
     var numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
     var boardDimensions = MutableLiveData<Int>()
     var playPositions = MutableLiveData<ArrayList<Posicoes>>()
+    var occupiedPlaces = MutableLiveData<Int>()
+    var playerWinner = MutableLiveData<Jogador>()
 
     var endGame = MutableLiveData(EndGameStates.PLAYING)
     var bombMove = MutableLiveData(false)
@@ -392,12 +394,13 @@ object GameModel {
         numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
         playPositions = MutableLiveData<ArrayList<Posicoes>>()
         playerTurn = MutableLiveData<Jogador>()
-        changePieceArray = arrayListOf<Posicoes>()
+        changePieceArray = arrayListOf()
         boardDimensions = MutableLiveData<Int>()
         bombMove = MutableLiveData(false)
         changePiecesMove = MutableLiveData(false)
         board = MutableLiveData<Array<IntArray>>()
-        endGame= MutableLiveData(EndGameStates.PLAYING)
+        endGame = MutableLiveData(EndGameStates.PLAYING)
+        playerWinner = MutableLiveData()
     }
 
 

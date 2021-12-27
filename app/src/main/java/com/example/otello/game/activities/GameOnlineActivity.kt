@@ -21,14 +21,14 @@ import com.example.otello.network.model.ConnType
 import com.example.otello.utils.ConstStrings
 import com.example.otello.utils.OtheloUtils
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.activity_game.*
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.lang.Exception
-import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
@@ -42,6 +42,7 @@ class GameOnlineActivity : AppCompatActivity() {
     var gameMode : String = ""
     var currPlayerId : Int = -1
     var gameRunning = true
+    var winnerObsTriggered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +58,7 @@ class GameOnlineActivity : AppCompatActivity() {
             v.gameModel.playerTurn.observe(this, observePlayerTurn)
             v.gameModel.playPositions.observe(this, observePlayerMoves)
             v.gameModel.endGame.observe(this, observeEndGame)
+            v.gameModel.playerWinner.observe(this, observeWinner)
 
             //Setting the Adapter, Dimensions and ClickListener for Grid
             setGridView(true)
@@ -172,39 +174,48 @@ class GameOnlineActivity : AppCompatActivity() {
         else {
             playerImageView.visibility = View.GONE
         }
-
-
     }
 
     private val observeEndGame = Observer<EndGameStates> {
-        when(it){
+        when (it) {
+            EndGameStates.FINISHED, EndGameStates.ABRUPTLY -> v.calculateWinner()
+        }
+    }
 
+    private val observeWinner = Observer<Jogador> {
+        winnerObsTriggered = true
+        postFirestoreData(it)
+
+        val jsonData = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
+            .put(ConstStrings.PLAYER_NAME, it.name).put(ConstStrings.PLAYER_SCORE, it.score)
+
+        for(i in v.gameModel.numJogadores.value!!) {
+            if(i.gameSocket != null) {
+                NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+            }
+        }
+
+        when (v.gameModel.endGame.value!!) {
             EndGameStates.FINISHED -> {
-                if (v.gameModel.numJogadores.value != null) {
-                    var winner = v.gameModel.numJogadores.value!![0]
-                    for (i in 1 until v.gameModel.numJogadores.value?.size!!) {
-                        if (v.gameModel.numJogadores.value!![i].score > winner.score) {
-                            winner = v.gameModel.numJogadores.value!![i]
+                AlertDialog.Builder(this)
+                        .setTitle(resources.getString(R.string.endGame))
+                        .setMessage(resources.getString(R.string.finalMessage)
+                                .replace("[X]", it.id.toString())
+                                .replace("[Y]", it.score.toString()))
+                        .setCancelable(false)
+                        .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                            finish()
                         }
-                    }
+                        .show()
 
-                    AlertDialog.Builder(this)
-                            .setTitle(resources.getString(R.string.endGame))
-                            .setMessage(resources.getString(R.string.finalMessage)
-                                    .replace("[X]", winner.id.toString())
-                                    .replace("[Y]", winner.score.toString()))
-                            .setCancelable(false)
-                            .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
-                                finish()
-                            }
-                            .show()
-                }
             }
 
             EndGameStates.ABRUPTLY -> {
                 AlertDialog.Builder(this)
                         .setTitle(resources.getString(R.string.endGame))
-                        .setMessage(resources.getString(R.string.endGameAbruptly))
+                        .setMessage(resources.getString(R.string.endGameAbruptly)
+                                .replace("[X]", it.id.toString())
+                                .replace("[Y]", it.score.toString()))
                         .setCancelable(false)
                         .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                             finish()
@@ -212,7 +223,6 @@ class GameOnlineActivity : AppCompatActivity() {
                         .show()
             }
         }
-
     }
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
@@ -230,7 +240,6 @@ class GameOnlineActivity : AppCompatActivity() {
             }
         }
     }
-
 
     /**
      * Function that receives information from server
@@ -431,15 +440,20 @@ class GameOnlineActivity : AppCompatActivity() {
 
                         ConstStrings.GAME_END_ABRUPTLY -> {
                             gameRunning = false
+                            val name = json.optString(ConstStrings.PLAYER_NAME)
+                            val score = json.optInt(ConstStrings.PLAYER_SCORE)
                             runOnUiThread {
                                 AlertDialog.Builder(this)
-                                        .setTitle(resources.getString(R.string.endGame))
-                                        .setMessage(resources.getString(R.string.endGameAbruptly))
-                                        .setCancelable(false)
-                                        .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
-                                            finish()
-                                        }
-                                        .show()
+                                    .setTitle(resources.getString(R.string.endGame))
+                                    .setMessage(
+                                        resources.getString(R.string.endGameAbruptly)
+                                            .replace("[X]", name.toString())
+                                            .replace("[Y]", score.toString()))
+                                    .setCancelable(false)
+                                    .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                                        finish()
+                                    }
+                                    .show()
                             }
                         }
                     }
@@ -559,10 +573,43 @@ class GameOnlineActivity : AppCompatActivity() {
         }
     }
 
+    fun postFirestoreData(player: Jogador) {
+        val db = Firebase.firestore
+
+        val record = HashMap<String, String>()
+        val collection = db.collection("scoreCollection")
+
+        record["Name"] = player.name
+        record["Score"] = player.score.toString()
+        record["Opponents"] = v.gameModel.numJogadores.value!!.size.toString()
+        record["FilledPieces"] = v.gameModel.occupiedPlaces.value!!.toString()
+
+        collection.get().addOnSuccessListener {
+                    if (it.size() < 5) { //adiciona logo o jogador
+                        collection.document((it.size() + 1).toString()).set(record)
+                    } else { //Dos que existem, verifica o que tem menor pontuação...
+                        var lowerScore = it.documents[0]
+                        for (i in 1 until it.size()) {
+                            if ((it.documents[i].get("Score") as String).toInt() < (lowerScore.get("Score") as String).toInt()) {
+                                lowerScore = it.documents[i]
+                            }
+                        }
+
+                        collection.document(lowerScore.id).set(record)
+                    }
+                }
+                .addOnFailureListener {
+                    Log.e("GameOnlineActivity", "Not possible to get data from Firestore")
+                }
+    }
+
     override fun onDestroy() {
         when(connType) {
             ConnType.SERVER -> {
-                v.sairJogo()
+                if(!winnerObsTriggered) {
+                    v.serverLeaveGame()
+                    postFirestoreData(v.gameModel.playerWinner.value!!)
+                }
                 GameModel.resetGameModel()
             }
 

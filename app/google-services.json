@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1071499299566",
+    "project_id": "otellogamegui",
+    "storage_bucket": "otellogamegui.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071499299566:android:9d2f205d320d0e279901ff",
+        "android_client_info": {
+          "package_name": "com.example.otello"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1071499299566-5hjt4ejh3dk1r21jbs442d6hmalk80m5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.otello",
+            "certificate_hash": "125271a31c3482c4b1a8a2e9be71125e2ab82d8d"
+          }
+        },
+        {
+          "client_id": "1071499299566-29p6df7n9jiad1s22trel1q876pn9li0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-YA55t8TxKjB7czT30MHRjSMY6ef3Tc0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1071499299566-29p6df7n9jiad1s22trel1q876pn9li0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.*
 import com.example.otello.network.manager.NetworkManager
 import com.example.otello.utils.ConstStrings
-import com.example.otello.utils.OtheloUtils
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -30,6 +29,8 @@ class GameOnlineViewModel : ViewModel() {
             gameModel.board.value!![3][4] = 2
             gameModel.board.value!![4][3] = 2
             gameModel.board.value!![4][4] = 1
+
+            gameModel.occupiedPlaces.postValue(4)
         } //Organize board when numJogadores = 3
         else if (gameModel.numJogadores.value?.size == 3) {
             gameModel.board.value!![2][4] = 1
@@ -46,6 +47,8 @@ class GameOnlineViewModel : ViewModel() {
             gameModel.board.value!![6][7] = 3
             gameModel.board.value!![7][6] = 3
             gameModel.board.value!![7][7] = 2
+
+            gameModel.occupiedPlaces.postValue(12)
         }
 
         alterarPontuacoes(gameModel.board.value!!)
@@ -85,6 +88,9 @@ class GameOnlineViewModel : ViewModel() {
                         }
                     }
                 }
+
+                //Updates the number of pieces already filled
+                gameModel.occupiedPlaces.postValue(addedPieces.size)
 
                 //Alterar as pontuações dos jogadores
                 alterarPontuacoes(newBoard)
@@ -160,6 +166,9 @@ class GameOnlineViewModel : ViewModel() {
                     }
                 }
             }
+
+            //Updates the number of pieces already filled
+            gameModel.occupiedPlaces.postValue(addedPieces.size)
 
             //Ver onde o próximo jogador pode jogar
             val validPositions = getPossiblePositions(turnPlayer, copyBoard)
@@ -533,13 +542,6 @@ class GameOnlineViewModel : ViewModel() {
 
                         ConstStrings.GAME_END_ABRUPTLY -> {
                             gameModel.endGame.postValue(EndGameStates.ABRUPTLY)
-                            val jsonData = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
-
-                            for(i in gameModel.numJogadores.value!!) {
-                                if(i.gameSocket != null && socket != i.gameSocket) {
-                                    NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
-                                }
-                            }
                         }
                     }
                 } catch (e: JSONException) {
@@ -560,15 +562,37 @@ class GameOnlineViewModel : ViewModel() {
     /**
      * Warns every player that the server ended the game abruptly
      */
-    fun sairJogo() {
-        val json = JSONObject()
-        json.put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
-
-        for (p in gameModel.numJogadores.value!!) {
-            if (p.gameSocket != null) {
-                NetworkManager.sendInfo(p.gameSocket!!, json.toString())
+    fun serverLeaveGame() {
+        var winner = gameModel.numJogadores.value!![0]
+        for (i in 1 until gameModel.numJogadores.value?.size!!) {
+            if (gameModel.numJogadores.value!![i].score > winner.score) {
+                winner = gameModel.numJogadores.value!![i]
             }
         }
+
+        gameModel.playerWinner.value = winner
+
+        val json = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
+                .put(ConstStrings.PLAYER_NAME, winner.name)
+                .put(ConstStrings.PLAYER_SCORE, winner.score)
+
+        for(i in gameModel.numJogadores.value!!)
+            if(i.gameSocket != null) {
+                NetworkManager.sendInfo(i.gameSocket!!, json.toString())
+            }
+
+
+    }
+
+    fun calculateWinner() {
+        var winner = gameModel.numJogadores.value!![0]
+        for (i in 1 until gameModel.numJogadores.value?.size!!) {
+            if (gameModel.numJogadores.value!![i].score > winner.score) {
+                winner = gameModel.numJogadores.value!![i]
+            }
+        }
+
+        gameModel.playerWinner.postValue(winner)
     }
 
 
