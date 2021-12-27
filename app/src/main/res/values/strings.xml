@@ -39,6 +39,12 @@
 
     <string name="endGameAbruptly">Someone left the game, the game is finished. Player [X] wins with [Y] points</string>
 
+    <string name="scoreNomeJogador">"Player name: "</string>
+    <string name="scorePontJogador">"Player Score: "</string>
+    <string name="scoreOpponents">"Opponents number: "</string>
+    <string name="scorePieces">"Pieces Placed: "</string>
+    <string name="scoreTitle">Score nº [X]</string>
+    <string name="highScores">High Scores</string>
 
 
 </resources>

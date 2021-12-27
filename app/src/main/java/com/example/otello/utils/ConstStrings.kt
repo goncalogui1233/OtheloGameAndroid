@@ -89,5 +89,15 @@ object ConstStrings {
 
     const val GAME_END_ABRUPTLY = "GameEndedAbruptly"
 
+    /**
+     * Firestore Strings
+     */
+
+    const val FIRESTORE_COLLECTION = "scoreCollection"
+    const val FIRESTORE_PLAYER_NAME = "Name"
+    const val FIRESTORE_PLAYER_SCORE = "Score"
+    const val FIRESTORE_NUMBER_OPPONENTS = "Opponents"
+    const val FIRESTORE_PIECES_PLACED = "FilledPieces"
+
 
 }

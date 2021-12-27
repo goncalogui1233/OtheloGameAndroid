@@ -30,4 +30,10 @@
     <string name="moves">Mostrar movimentos possíveis</string>
     <string name="updateInfos">Atualizar informações do jogo</string>
     <string name="endGameAbruptly">Alguém saiu do jogo, o jogo terminou</string>
+    <string name="scoreNomeJogador">"Nome Jogador: "</string>
+    <string name="scorePontJogador">"Pontuação Jogador: "</string>
+    <string name="scoreOpponents">"Número Oponentes: "</string>
+    <string name="scorePieces">"Peças colocadas: "</string>
+    <string name="scoreTitle">Pontuação nº [X]</string>
+    <string name="highScores">Melhores Pontuações</string>
 </resources>

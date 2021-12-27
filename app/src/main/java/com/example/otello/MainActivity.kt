@@ -12,6 +12,8 @@ import androidx.appcompat.app.AlertDialog
 import com.example.otello.game.activities.GameActivity
 import com.example.otello.network.model.ConnType
 import com.example.otello.network.activities.NetworkActivity
+import com.example.otello.scores.activity.ScoresActivity
+import com.example.otello.scores.model.ScoresClass
 import com.example.otello.utils.ConstStrings
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -31,6 +33,10 @@ class MainActivity : AppCompatActivity() {
 
         profileBtn.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
+        }
+
+        scoresBtn.setOnClickListener {
+            startActivity(Intent(this, ScoresActivity::class.java))
         }
     }
 

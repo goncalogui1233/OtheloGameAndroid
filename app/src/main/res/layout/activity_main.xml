@@ -55,5 +55,11 @@
         android:layout_height="wrap_content"
         android:text="Perfil do Utilizador"/>
 
+    <Button
+        android:id="@+id/scoresBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scores"/>
+
 
 </LinearLayout>

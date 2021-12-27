@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.otello">
-
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
-    <uses-feature android:name="android.hardware.camera" />
+<manifest package="com.example.otello"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
@@ -18,14 +10,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Otello"
         android:usesCleartextTraffic="true">
-        <activity android:name=".network.activities.NetworkActivity"
-            android:label="@string/title_lobby"/>
+        <activity android:name=".scores.activity.ScoresActivity"
+            android:label="@string/highScores"/>
+        <activity
+            android:name=".network.activities.NetworkActivity"
+            android:label="@string/title_lobby" />
         <activity android:name=".ProfileActivity" />
         <activity
             android:name=".game.activities.GameActivity"
             android:label="@string/title_activity_game" />
-        <activity
-            android:name=".game.activities.GameOnlineActivity"/>
+        <activity android:name=".game.activities.GameOnlineActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,5 +28,13 @@
             </intent-filter>
         </activity>
     </application>
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 </manifest>
