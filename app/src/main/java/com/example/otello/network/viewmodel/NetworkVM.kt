@@ -36,7 +36,7 @@ class NetworkVM : ViewModel(){
     fun initServer(nome: String, image: Bitmap?){
         //Adicionar o próprio jogador à lista
         val pl = Jogador(clientsConnected.value!!)
-        pl.name = nome
+        pl.name = if(nome.isNotEmpty()) nome else ConstStrings.PREDEFINED_PLAYER_NAME
         pl.photo = image
         jogadores.add(pl)
         NetworkManager.playerId = pl.id
@@ -85,7 +85,8 @@ class NetworkVM : ViewModel(){
                     when (json.getString(ConstStrings.TYPE)) {
                         ConstStrings.PLAYER_INFO -> {
                             if (clientsConnected.value!! <= 3) {
-                                player.name = json.optString(ConstStrings.PLAYER_INFO_NOME)
+                                val nome = json.optString(ConstStrings.PLAYER_INFO_NOME)
+                                player.name = if(nome.isNotEmpty()) nome else ConstStrings.PREDEFINED_PLAYER_NAME
 
                                 val bytePhoto = Base64.decode(json.optString(ConstStrings.PLAYER_INFO_PHOTO), Base64.URL_SAFE)
                                 val rawBitmap = BitmapFactory.decodeByteArray(bytePhoto, 0, bytePhoto.size)

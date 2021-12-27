@@ -99,5 +99,9 @@ object ConstStrings {
     const val FIRESTORE_NUMBER_OPPONENTS = "Opponents"
     const val FIRESTORE_PIECES_PLACED = "FilledPieces"
 
+    /**
+     * Other Consts
+     */
+    const val PREDEFINED_PLAYER_NAME = "Anonymous"
 
 }
