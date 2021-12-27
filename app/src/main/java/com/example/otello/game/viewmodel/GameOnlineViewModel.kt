@@ -106,6 +106,7 @@ class GameOnlineViewModel : ViewModel() {
 
                 //Ver onde o próximo jogador pode jogar
                 val validPositions = getPossiblePositions(turnPlayer, newBoard)
+                gameModel.playPositions.value!!.clear()
                 gameModel.playPositions.postValue(validPositions)
 
                 //Atualizar o board

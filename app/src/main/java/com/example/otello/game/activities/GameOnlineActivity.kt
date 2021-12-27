@@ -143,13 +143,27 @@ class GameOnlineActivity : AppCompatActivity() {
 
     private val observePlayerTurn = Observer<Jogador> {
         //Atualizar o ecrã sobre o atual jogador
-        playerTurnInfo.text = resources.getString(R.string.player)
-                .replace("[X]", v.gameModel.playerTurn.value?.id.toString())
+
+        playerTurnInfo.text = resources.getString(R.string.player).replace("[X]", v.gameModel.playerTurn.value?.id.toString())
+                .plus("\n").plus(resources.getString(R.string.moreInfoPlayer).replace("[Y]", v.gameModel.playerTurn.value?.name.toString()))
 
         //Ao mudar o jogador, atualizar as pontuações
-        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
-                .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
-                .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
+        if(v.gameModel.numJogadores.value!!.size == 2) {
+            pontuacoesInfo.text = resources.getString(R.string.twoPlayerOnlineScore)
+                    .replace("[1]", v.gameModel.numJogadores.value!![0].name)
+                    .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
+                    .replace("[2]", v.gameModel.numJogadores.value!![1].name)
+                    .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
+        }
+        else if(v.gameModel.numJogadores.value!!.size == 3) {
+            pontuacoesInfo.text = resources.getString(R.string.threePlayerScore)
+                    .replace("[1]", v.gameModel.numJogadores.value!![0].name)
+                    .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
+                    .replace("[2]", v.gameModel.numJogadores.value!![1].name)
+                    .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
+                    .replace("[3]", v.gameModel.numJogadores.value!![2].name)
+                    .replace("[C]", v.gameModel.numJogadores.value!![2].score.toString())
+        }
 
         if(it.photo != null) {
             playerImageView.visibility = View.VISIBLE
@@ -276,17 +290,31 @@ class GameOnlineActivity : AppCompatActivity() {
                                     }
                                 }
 
-                                if (scores.length() == 2) {
+                                if (scores != null && scores.length() == 2) {
                                     val p1 = scores.getJSONObject(0)
                                     val p2 = scores.getJSONObject(1)
-                                    pontuacoesInfo.text = resources.getString(R.string.twoPlayerScoree)
-                                            .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME) ?: p1.optInt(ConstStrings.PLAYER_ID).toString())
+                                    pontuacoesInfo.text = resources.getString(R.string.twoPlayerOnlineScore)
+                                            .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME))
                                             .replace("[A]", p1.optString(ConstStrings.PLAYER_SCORE))
-                                            .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME) ?: p2.optInt(ConstStrings.PLAYER_ID).toString())
+                                            .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME))
                                             .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
                                 }
+                                else if(scores != null && scores.length() == 3) {
+                                    val p1 = scores.getJSONObject(0)
+                                    val p2 = scores.getJSONObject(1)
+                                    val p3 = scores.getJSONObject(2)
+                                    pontuacoesInfo.text = resources.getString(R.string.threePlayerScore)
+                                            .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME))
+                                            .replace("[A]", p1.optString(ConstStrings.PLAYER_SCORE))
+                                            .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME))
+                                            .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
+                                            .replace("[3]", p3.optString(ConstStrings.PLAYER_NAME))
+                                            .replace("[C]", p3.optString(ConstStrings.PLAYER_SCORE))
+                                }
 
-                                playerTurnInfo.text = "Jogador: " + currPlayerId.toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
+                                playerTurnInfo.text = resources.getString(R.string.player).replace("[X]", currPlayerId.toString())
+                                        .plus("\n").plus(resources.getString(R.string.moreInfoPlayer).replace("[Y]", currPlayer.optString(ConstStrings.PLAYER_NAME)))
+
                                 val photoObj = currPlayer.optJSONObject(ConstStrings.PLAYER_PHOTO)
                                 if (photoObj != null) {
                                     playerImageView.visibility = View.VISIBLE
@@ -300,7 +328,9 @@ class GameOnlineActivity : AppCompatActivity() {
                             currPlayerId = player.optInt(ConstStrings.PLAYER_ID)
 
                             runOnUiThread {
-                                playerTurnInfo.text = "Jogador: " + currPlayerId.toString() + "\nNome: " + player.optString(ConstStrings.PLAYER_NAME)
+                                playerTurnInfo.text = resources.getString(R.string.player).replace("[X]", currPlayerId.toString())
+                                        .plus("\n").plus(resources.getString(R.string.moreInfoPlayer).replace("[Y]", player.optString(ConstStrings.PLAYER_NAME)))
+
                                 val photoObj = player.optJSONObject(ConstStrings.PLAYER_PHOTO)
                                 if (photoObj != null) {
                                     playerImageView.visibility = View.VISIBLE
@@ -397,14 +427,28 @@ class GameOnlineActivity : AppCompatActivity() {
                                         if (scores.length() == 2) {
                                             val p1 = scores.getJSONObject(0)
                                             val p2 = scores.getJSONObject(1)
-                                            pontuacoesInfo.text = resources.getString(R.string.twoPlayerScoree)
+                                            pontuacoesInfo.text = resources.getString(R.string.twoPlayerOnlineScore)
                                                     .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME) ?: p1.optInt(ConstStrings.PLAYER_ID).toString())
                                                     .replace("[A]", p1.optString(ConstStrings.PLAYER_SCORE))
                                                     .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME) ?: p2.optInt(ConstStrings.PLAYER_ID).toString())
                                                     .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
                                         }
+                                        else if(scores.length() == 3) {
+                                            val p1 = scores.getJSONObject(0)
+                                            val p2 = scores.getJSONObject(1)
+                                            val p3 = scores.getJSONObject(2)
+                                            pontuacoesInfo.text = resources.getString(R.string.threePlayerScore)
+                                                    .replace("[1]", p1.optString(ConstStrings.PLAYER_NAME))
+                                                    .replace("[A]", p1.optString(ConstStrings.PLAYER_SCORE))
+                                                    .replace("[2]", p2.optString(ConstStrings.PLAYER_NAME))
+                                                    .replace("[B]", p2.optString(ConstStrings.PLAYER_SCORE))
+                                                    .replace("[3]", p3.optString(ConstStrings.PLAYER_NAME))
+                                                    .replace("[C]", p3.optString(ConstStrings.PLAYER_SCORE))
+                                        }
 
-                                        playerTurnInfo.text = "Jogador: " + currPlayer.optInt(ConstStrings.PLAYER_ID).toString() + "\nNome: " + currPlayer.optString(ConstStrings.PLAYER_NAME)
+                                        playerTurnInfo.text = resources.getString(R.string.player).replace("[X]", currPlayerId.toString())
+                                                .plus("\n").plus(resources.getString(R.string.moreInfoPlayer).replace("[Y]", currPlayer.optString(ConstStrings.PLAYER_NAME)))
+
                                         val photoObj = currPlayer.optJSONObject(ConstStrings.PLAYER_PHOTO)
                                         if (photoObj != null) {
                                             playerImageView.visibility = View.VISIBLE

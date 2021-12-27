@@ -36,4 +36,8 @@
     <string name="scorePieces">"Peças colocadas: "</string>
     <string name="scoreTitle">Pontuação nº [X]</string>
     <string name="highScores">Melhores Pontuações</string>
+    <string name="twoPlayerOnlineScore">Jogador [1]: [A] pontos - Jogador [2]: [B] pontos</string>
+    <string name="threePlayerScore">Jogador [1]: [A] pontos - Jogador [2]: [B] pontos - Jogador [3]: [C] pontos</string>
+    <string name="moreInfoPlayer">Nome: [Y]</string>
+    <string name="title_lobby">Lobby Pre-Jogo</string>
 </resources>

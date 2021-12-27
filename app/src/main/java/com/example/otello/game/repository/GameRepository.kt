@@ -197,6 +197,10 @@ object GameRepository {
                 col--
             }
 
+            if(board[line][col] == 0){
+                return null
+            }
+
             if (board[line][col] != 0 && board[line][col] == jogadorAtual.id) {
                 if (checkingLeft) {
                     if (column - 1 >= 0 && board[line][column - 1] == 0) {
@@ -239,7 +243,11 @@ object GameRepository {
                 pos--
             }
 
-            if (board[pos][coluna] == jogadorAtual.id) {
+            if(board[pos][coluna] == 0){
+                return null
+            }
+
+            if (board[pos][coluna] != 0 && board[pos][coluna] == jogadorAtual.id) {
                 if (checkingTop) {
                     if ((linha - 1) >= 0 && board[linha - 1][coluna] == 0) {
                         return Posicoes(linha - 1, coluna)
@@ -284,7 +292,11 @@ object GameRepository {
             }
             lin++
 
-            if (board[lin][col] == jogadorAtual.id) {
+            if(board[lin][col] == 0){
+                return null
+            }
+
+            if (board[lin][col] != 0 && board[lin][col] == jogadorAtual.id) {
                 if (checkingTopLeft) {
                     if ((line - 1) >= 0 && (column - 1) >= 0 && board[line - 1][column - 1] == 0) {
                         return Posicoes(line - 1, column - 1)
@@ -328,7 +340,11 @@ object GameRepository {
                 col--
             lin--
 
-            if (board[lin][col] == jogadorAtual.id) {
+            if(board[lin][col] == 0){
+                return null
+            }
+
+            if (board[lin][col] != 0 && board[lin][col] == jogadorAtual.id) {
                 if (checkingBottomLeft) {
                     if ((column - 1 >= 0 && line + 1 < boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
                         return Posicoes(line + 1, column - 1)

@@ -4,9 +4,11 @@
     <string name="title_lobby">Pre-Game Lobby</string>
     <!-- Strings used for fragments for navigation -->
 
-    <string name="player">Player: [X]</string>
+    <string name="player">PlayerID: [X]</string>
+    <string name="moreInfoPlayer">Player Name: [Y]</string>
     <string name="twoPlayerScore">Player 1: [A] points - Player 2: [B] points</string>
-    <string name="twoPlayerScoree">Player [1]: [A] points - Player [2]: [B] points</string>
+    <string name="twoPlayerOnlineScore">Player [1]: [A] points - Player [2]: [B] points</string>
+    <string name="threePlayerScore">Player [1]: [A] points - Player [2]: [B] points - Player [3]: [C] points</string>
     <string name="activated"> activated</string>
     <string name="deactivated"> deactivated</string>
     <string name="bombSpecial">Bomb Special </string>
