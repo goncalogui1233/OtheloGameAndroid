@@ -21,6 +21,8 @@ class GameOnlineViewModel : ViewModel() {
     val gameModel = GameRepository
 
     fun initBoard() {
+        gameModel.endGame.postValue(EndGameStates.PLAYING)
+
         //Organize board when numJogadores = 2
         if (gameModel.numJogadores.value?.size == 2) {
             gameModel.board.value = Array(64) { IntArray(8) }
@@ -555,6 +557,7 @@ class GameOnlineViewModel : ViewModel() {
 
                         ConstStrings.GAME_END_ABRUPTLY -> {
                             gameModel.endGame.postValue(EndGameStates.ABRUPTLY)
+                            return@thread
                         }
                     }
                 } catch (e: JSONException) {

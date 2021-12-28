@@ -15,7 +15,7 @@ object GameRepository {
     var occupiedPlaces = MutableLiveData<Int>()
     var playerWinner = MutableLiveData<Jogador>()
 
-    var endGame = MutableLiveData(EndGameStates.PLAYING)
+    var endGame = MutableLiveData<EndGameStates>()
     var bombMove = MutableLiveData(false)
     var changePiecesMove = MutableLiveData(false)
 
@@ -432,7 +432,7 @@ object GameRepository {
         bombMove = MutableLiveData(false)
         changePiecesMove = MutableLiveData(false)
         board = MutableLiveData<Array<IntArray>>()
-        endGame = MutableLiveData(EndGameStates.PLAYING)
+        endGame = MutableLiveData()
         playerWinner = MutableLiveData()
     }
 

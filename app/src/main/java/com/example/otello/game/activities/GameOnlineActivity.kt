@@ -660,7 +660,7 @@ class GameOnlineActivity : AppCompatActivity() {
 
             ConnType.CLIENT -> {
                 gameRunning = false
-                if (winnerObsTriggered) {
+                if (!winnerObsTriggered) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
                     NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
