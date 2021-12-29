@@ -48,5 +48,13 @@
     <string name="scoreTitle">Score nº [X]</string>
     <string name="highScores">High Scores</string>
 
+    <string name="welcomeMsg">Welcome to Othello</string>
+    <string name="localGame">Local Game</string>
+    <string name="onlineGame">Online Game</string>
+    <string name="userProfile">User Profile</string>
+    <string name="scoresStr">Top Scores</string>
+    <string name="aboutStr">About</string>
+    <string name="aboutPresentation">Application created by: </string>
+
 
 </resources>

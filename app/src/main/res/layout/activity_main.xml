@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="30dp"
-        android:text="Welcome to Otello"
+        android:text="@string/welcomeMsg"
         android:textSize="20sp" />
 
     <androidx.cardview.widget.CardView
@@ -38,14 +38,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
-            android:text="Jogo Local" />
+            android:text="@string/localGame" />
 
         <Button
             android:id="@+id/startOnlineGame"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:text="Jogo Online" />
+            android:text="@string/onlineGame" />
 
     </LinearLayout>
 
@@ -53,13 +53,29 @@
         android:id="@+id/profileBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Perfil do Utilizador"/>
+        android:text="@string/userProfile"/>
 
-    <Button
-        android:id="@+id/scoresBtn"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Scores"/>
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/scoresBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/scoresStr"
+            android:layout_marginEnd="10dp"/>
+
+        <Button
+            android:id="@+id/aboutBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/aboutStr"
+            android:layout_marginStart="10dp"/>
+
+    </LinearLayout>
 
 
 </LinearLayout>

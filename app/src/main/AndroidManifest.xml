@@ -10,8 +10,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Otello"
         android:usesCleartextTraffic="true">
-        <activity android:name=".scores.activity.ScoresActivity"
-            android:label="@string/highScores"/>
+        <activity android:name=".AboutActivity"></activity>
+        <activity
+            android:name=".scores.activity.ScoresActivity"
+            android:label="@string/highScores" />
         <activity
             android:name=".network.activities.NetworkActivity"
             android:label="@string/title_lobby" />
@@ -28,13 +30,13 @@
             </intent-filter>
         </activity>
     </application>
+
     <uses-feature android:name="android.hardware.camera" />
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-
     <uses-permission android:name="android.permission.CAMERA" />
-
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

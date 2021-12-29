@@ -40,4 +40,11 @@
     <string name="threePlayerScore">Jogador [1]: [A] pontos - Jogador [2]: [B] pontos - Jogador [3]: [C] pontos</string>
     <string name="moreInfoPlayer">Nome: [Y]</string>
     <string name="title_lobby">Lobby Pre-Jogo</string>
+    <string name="welcomeMsg">Bem-vindo ao Othello</string>
+    <string name="localGame">Jogo Local</string>
+    <string name="onlineGame">Jogo Online</string>
+    <string name="userProfile">Perfil de Utilizador</string>
+    <string name="scoresStr">Melhores Pontuações</string>
+    <string name="aboutStr">Sobre</string>
+    <string name="aboutPresentation">"Aplicação desenvolvida por: "</string>
 </resources>

@@ -38,6 +38,11 @@ class MainActivity : AppCompatActivity() {
         scoresBtn.setOnClickListener {
             startActivity(Intent(this, ScoresActivity::class.java))
         }
+
+        aboutBtn.setOnClickListener {
+            startActivity(Intent(this, AboutActivity::class.java))
+        }
+
     }
 
     fun alertDialogOnline(){
