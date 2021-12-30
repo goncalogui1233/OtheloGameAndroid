@@ -21,6 +21,9 @@ object ConstStrings {
 
     const val PLAYER_ENTER_GAME = "EnterGame"
 
+    const val UPDATE_ID = "UpdateId"
+    const val NEW_ID = "NewId"
+
     /**NetworkActivity Consts*/
     const val INTENT_CONN_TYPE = "ConnectType"
     const val INTENT_IP_ADDR = "IpAddr"

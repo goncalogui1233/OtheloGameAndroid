@@ -6,7 +6,7 @@ import java.net.Socket
 
 class Jogador : Serializable{
 
-    val id : Int
+    var id : Int
     var name : String = ""
     var bombPiece : Boolean
     var pieceChange : Boolean

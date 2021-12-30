@@ -112,6 +112,15 @@ class NetworkVM : ViewModel(){
 
                         ConstStrings.LEAVE_GAME -> {
                             clientsConnected.postValue(clientsConnected.value!! - 1)
+
+                            val pos = jogadores.indexOf(player) + 1
+                            for(i in pos until jogadores.size){
+                                jogadores[i].id = jogadores[i].id - 1
+                                val json = JSONObject().put(ConstStrings.TYPE, ConstStrings.UPDATE_ID)
+                                        .put(ConstStrings.NEW_ID, jogadores[i].id)
+                                NetworkManager.sendInfo(jogadores[i].lobbySocket!!, json.toString())
+                            }
+
                             jogadores.remove(player)
                             return@thread
                         }
@@ -217,6 +226,9 @@ class NetworkVM : ViewModel(){
                         else {
                             infos.postValue(LobbyStates.TOO_MANY_PLAYERS)
                         }
+                    }
+                    ConstStrings.UPDATE_ID -> {
+                        NetworkManager.playerId = json.optInt(ConstStrings.NEW_ID)
                     }
                 }
             }
