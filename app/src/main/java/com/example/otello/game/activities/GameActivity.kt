@@ -26,8 +26,6 @@ class GameActivity : AppCompatActivity() {
     lateinit var v : GameViewModel
     val boardD = 8
     var shouldSeeMoves : Boolean = false
-    var connType : ConnType? = null
-    var gameMode : String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,8 +43,8 @@ class GameActivity : AppCompatActivity() {
         boardGrid.numColumns = v.gameModel.boardDimensions.value!!
         boardGrid.adapter = adapter
         boardGrid.setOnItemClickListener { _, _, i, _ ->
-            val linha = i / 8
-            val coluna = i.rem(8)
+            val linha = i / v.gameModel.boardDimensions.value!!
+            val coluna = i.rem(v.gameModel.boardDimensions.value!!)
 
             if(v.gameModel.changePiecesMove.value!!){
                 v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
@@ -136,6 +134,7 @@ class GameActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.game_menu, menu)
+        menu?.findItem(R.id.updateInfos)?.isVisible = false
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -156,6 +155,8 @@ class GameActivity : AppCompatActivity() {
             R.id.bombTrigger -> bombAction()
 
             R.id.pieceTrigger -> pieceAction()
+
+            R.id.updateInfos -> {}
         }
         return super.onOptionsItemSelected(item)
     }

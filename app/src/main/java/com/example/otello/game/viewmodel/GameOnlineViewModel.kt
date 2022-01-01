@@ -67,7 +67,7 @@ class GameOnlineViewModel : ViewModel() {
 
         if (copyBoard != null && copyBoard[line][column] == 0) {
             //Check if it's possible to put piece in that position
-            if (checkIfPossible(line, column)) {
+            if (gameModel.checkIfPossible(line, column)) {
                 var addedPieces = arrayListOf<AddedPosition>()
                 //Coloca posição no board
                 copyBoard[line][column] = gameModel.playerTurn.value?.id!!
@@ -350,18 +350,6 @@ class GameOnlineViewModel : ViewModel() {
         return arrayListOf()
     }
 
-    /**
-     * Função que verifica se o jogador pode inserir peça no local onde clicou
-     */
-    private fun checkIfPossible(line: Int, column: Int): Boolean {
-        for (pos in gameModel.playPositions.value!!) {
-            if (line == pos.linha && column == pos.coluna) {
-                return true
-            }
-        }
-        return false
-    }
-
     fun receiveInfoFromClients(socket: Socket) {
         thread {
             while (true) {
@@ -529,7 +517,7 @@ class GameOnlineViewModel : ViewModel() {
                                 }
                             }
                             else {
-                                if (checkIfPossible(linha, coluna)) {
+                                if (gameModel.checkIfPossible(linha, coluna)) {
                                     updateValue(linha, coluna)
                                 } else {
                                     jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PUT_NEW_PIECE)

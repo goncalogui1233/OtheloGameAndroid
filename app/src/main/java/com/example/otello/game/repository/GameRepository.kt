@@ -423,6 +423,18 @@ object GameRepository {
         endGame.postValue(EndGameStates.FINISHED)
     }
 
+    /**
+     * Função que verifica se o jogador pode inserir peça no local onde clicou
+     */
+    fun checkIfPossible(line: Int, column : Int) : Boolean {
+        for (pos in playPositions.value!!){
+            if(line == pos.linha && column == pos.coluna){
+                return true
+            }
+        }
+        return false
+    }
+
     fun resetGameModel() {
         numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
         playPositions = MutableLiveData<ArrayList<Posicoes>>()

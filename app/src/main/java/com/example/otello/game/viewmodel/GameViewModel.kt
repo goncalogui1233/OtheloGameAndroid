@@ -54,7 +54,7 @@ class GameViewModel : ViewModel(){
 
         if(copyBoard != null && copyBoard[line][column] == 0){
             //Check if it's possible to put piece in that position
-            if(checkIfPossible(line, column)) {
+            if(gameModel.checkIfPossible(line, column)) {
                 //Coloca posição no board
                 copyBoard[line][column] = gameModel.playerTurn.value?.id!!
 
@@ -185,28 +185,28 @@ class GameViewModel : ViewModel(){
     fun changePieces(line: Int, column: Int, copyBoard : Array<IntArray>) : Array<IntArray>{
 
         //Check Left
-        flipLine(copyBoard, line, column, true)
+        gameModel.flipLine(copyBoard, line, column, true)
 
         //Check Top Left Diagonal
-        flipTopDiagonal(copyBoard, line, column, true)
+        gameModel.flipTopDiagonal(copyBoard, line, column, true)
 
         //Check Top
-        flipColumn(copyBoard, line, column, true)
+        gameModel.flipColumn(copyBoard, line, column, true)
 
         //check top right diagonal
-        flipTopDiagonal(copyBoard, line, column, false)
+        gameModel.flipTopDiagonal(copyBoard, line, column, false)
 
         //Check Right
-        flipLine(copyBoard, line, column, false)
+        gameModel.flipLine(copyBoard, line, column, false)
 
         //Check Bottom Right Diagonal
-        flipDiagonalBottom(copyBoard, line, column, false)
+        gameModel.flipDiagonalBottom(copyBoard, line, column, false)
 
         //Check Bottom
-        flipColumn(copyBoard, line, column, false)
+        gameModel.flipColumn(copyBoard, line, column, false)
 
         //check bottom left diagonal
-        flipDiagonalBottom(copyBoard, line, column, true)
+        gameModel.flipDiagonalBottom(copyBoard, line, column, true)
 
         return copyBoard
     }
@@ -265,348 +265,48 @@ class GameViewModel : ViewModel(){
 
                         var pos: Posicoes? = null
                         //Check Left
-                        pos = searchBoardLine(i, j, true)
+                        pos = gameModel.searchBoardLine(i, j, true)
                         if (pos != null)
                             k.add(pos)
 
                         //Check Diagonal Top Left
-                        pos = searchBoardDiagonalTop(i, j, true)
+                        pos = gameModel.searchBoardDiagonalTop(i, j, true)
                         if (pos != null)
                             k.add(pos)
 
                         //Check Top
-                        pos = searchBoardColumn(i, j, true)
+                        pos = gameModel.searchBoardColumn(i, j, true)
                         if (pos != null)
                             k.add(pos)
 
                         //Check Diagonal Top Right
-                        pos = searchBoardDiagonalTop(i, j, false)
+                        pos = gameModel.searchBoardDiagonalTop(i, j, false)
                         if (pos != null)
                             k.add(pos)
 
                         //Check Right
-                        pos = searchBoardLine(i, j, false)
+                        pos = gameModel.searchBoardLine(i, j, false)
                         if (pos != null)
                             k.add(pos)
 
                         //Check Diagonal Bottom Right
-                        pos = searchBoardDiagonalBottom(i, j, false)
+                        pos = gameModel.searchBoardDiagonalBottom(i, j, false)
                         if (pos != null)
                             k.add(pos)
 
                         //Check Bottom
-                        pos = searchBoardColumn(i, j, false)
+                        pos = gameModel.searchBoardColumn(i, j, false)
                         if (pos != null)
                             k.add(pos)
 
                         //Check Diagonal Bottom Left
-                        pos = searchBoardDiagonalBottom(i, j, true)
+                        pos = gameModel.searchBoardDiagonalBottom(i, j, true)
                         if (pos != null)
                             k.add(pos)
                     }
                 }
             }
             gameModel.playPositions.value = k
-        }
-    }
-
-    /**
-     * Função que verifica se o jogador pode inserir peça no local onde clicou
-     */
-    private fun checkIfPossible(line: Int, column : Int) : Boolean {
-        for (pos in gameModel.playPositions.value!!){
-            if(line == pos.linha && column == pos.coluna){
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * Função que, dada uma linha, procura um local para colocar uma peça
-     */
-    private fun searchBoardLine(line : Int, column : Int, checkingLeft : Boolean) : Posicoes?{
-        var col = column
-        val board = gameModel.board.value!!
-
-        while (if (checkingLeft) col < (gameModel.boardDimensions.value!! - 1) else col >= 1) {
-            if (checkingLeft) {
-                col++
-            } else {
-                col--
-            }
-
-            if (board[line][col] != 0 && board[line][col] == gameModel.playerTurn.value?.id) {
-                if (checkingLeft) {
-                    if (column - 1 >= 0 && board[line][column - 1] == 0) {
-                        return Posicoes(line, column - 1)
-                    } else {
-                        return null
-                    }
-                } else {
-                    if (column + 1 < gameModel.boardDimensions.value!! && board[line][column + 1] == 0) {
-                        return Posicoes(line, column + 1)
-                    } else {
-                        return null
-                    }
-                }
-            }
-        }
-        return null
-    }
-
-    /**
-     * Função que, dada uma coluna, procura um local para colocar uma peça
-     */
-    private fun searchBoardColumn(linha: Int, coluna: Int, checkingTop: Boolean): Posicoes? {
-        var pos = linha
-        val board = gameModel.board.value!!
-
-        while (if (checkingTop) pos < (gameModel.boardDimensions.value!! - 1) else pos >= 1) {
-            if (checkingTop) {
-                pos++
-            } else {
-                pos--
-            }
-
-            if (board[pos][coluna] == gameModel.playerTurn.value?.id) {
-                if (checkingTop) {
-                    if ((linha - 1) >= 0 && board[linha - 1][coluna] == 0) {
-                        return Posicoes(linha - 1, coluna)
-                    } else {
-                        return null
-                    }
-                } else {
-                    if ((linha + 1) < gameModel.boardDimensions.value!! && board[linha + 1][coluna] == 0) {
-                        return Posicoes(linha + 1, coluna)
-                    } else {
-                        return null
-                    }
-                }
-            }
-        }
-        return null
-    }
-
-    /**
-     * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
-     * esquerda ou direita no topo da posição
-     */
-    private fun searchBoardDiagonalTop(line : Int, column : Int, checkingTopLeft : Boolean) : Posicoes?{
-        var lin = line
-        var col = column
-        val board = gameModel.board.value!!
-
-        while(if(checkingTopLeft) (lin < gameModel.boardDimensions.value!! - 1) && (col < gameModel.boardDimensions.value!! - 1) else (lin < gameModel.boardDimensions.value!! - 1 && col >= 1)){
-            if (checkingTopLeft) {
-                col++
-            } else {
-                col--
-            }
-            lin++
-
-            if(board[lin][col] == gameModel.playerTurn.value?.id){
-                if(checkingTopLeft){
-                    if ( (line-1)>=0 && (column-1)>=0 && board[line - 1][column - 1] == 0) {
-                        return Posicoes(line-1, column -1)
-                    } else {
-                        return null
-                    }
-                }
-                else {
-                    if ((line-1>0 && column + 1 < gameModel.boardDimensions.value!!) && board[line - 1][column + 1] == 0) {
-                        return Posicoes(line-1, column+1)
-                    } else {
-                        return null
-                    }
-                }
-            }
-        }
-        return null
-    }
-
-    /**
-     * Função que verifica o board para ver se é possivel colocar uma peça na diagonal
-     * esquerda ou direita no fundo da posição
-     */
-    private fun searchBoardDiagonalBottom(line: Int, column: Int, checkingBottomLeft : Boolean) : Posicoes?{
-        var lin = line
-        var col = column
-        val board = gameModel.board.value!!
-
-        while(if(checkingBottomLeft) (lin >= 1 && col < gameModel.boardDimensions.value!! - 1) else (lin >= 1 && col >= 1)){
-            if(checkingBottomLeft)
-                col++
-            else
-                col--
-            lin--
-
-            if(board[lin][col] == gameModel.playerTurn.value?.id){
-                if(checkingBottomLeft){
-                    if ((column - 1 >= 0 && line + 1 < gameModel.boardDimensions.value!!) && board[line + 1][column - 1] == 0) {
-                        return Posicoes(line+1, column-1)
-                    } else {
-                        return null
-                    }
-                }
-                else {
-                    if ((line + 1 < gameModel.boardDimensions.value!! && column +1 < gameModel.boardDimensions.value!! ) &&
-                            board[line + 1][column + 1] == 0) {
-                        return Posicoes(line+1, column+1)
-                    } else {
-                        return null
-                    }
-                }
-            }
-        }
-        return null
-    }
-
-    /**
-     * Função que vira todas as peças possíveis numa columa
-     */
-    private fun flipColumn(copyBoard: Array<IntArray>, line: Int, column: Int, flipTop: Boolean) {
-        var lin = line
-        while (if (flipTop) lin >= 1 else lin < gameModel.boardDimensions.value!! - 1) {
-            if (flipTop) {
-                lin--
-            } else {
-                lin++
-            }
-
-            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
-            if (copyBoard[lin][column] == 0)
-                break
-
-            //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[lin][column] == gameModel.playerTurn.value?.id) {
-                while (if (flipTop) lin < line else lin > line) {
-                    //Volta na direção oposta até ao local inicial e,
-                    //por cada posição que passa, altera a atual pela do jogador que jogou
-                    if (flipTop) {
-                        lin++
-                    } else {
-                        lin--
-                    }
-                    copyBoard[lin][column] = gameModel.playerTurn.value?.id!!
-                }
-                break
-            }
-        }
-    }
-
-    /**
-    * Função que vira todas as peças possíveis numa linha
-    */
-    private fun flipLine(copyBoard: Array<IntArray>, line: Int, column: Int, flipLeft: Boolean) {
-
-        var col = column
-
-        while (if (flipLeft) col >= 1 else col < gameModel.boardDimensions.value!! - 1) {
-
-            if (flipLeft) {
-                col--
-            } else {
-                col++
-            }
-
-            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
-            if (copyBoard[line][col] == 0) {
-                break
-            }
-
-            //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[line][col] == gameModel.playerTurn.value?.id) {
-                while (if (flipLeft) col < column else col > column) {
-                    //Volta na direção oposta até ao local inicial e,
-                    //por cada posição que passa, altera a atual pela do jogador que jogou
-                    if (flipLeft) {
-                        col++
-                    } else {
-                        col--
-                    }
-                    copyBoard[line][col] = gameModel.playerTurn.value?.id!!
-                }
-                break
-            }
-
-        }
-    }
-
-    /**
-    * Função que vira todas as peças possíveis em ambas as diagonais do topo
-    */
-    private fun flipTopDiagonal(copyBoard: Array<IntArray>, line: Int, column: Int, flipDiagonalLeft: Boolean) {
-        var lin = line
-        var col = column
-        //Percorrer o board
-        while (if (flipDiagonalLeft) lin >= 1 && col >= 1 else lin >= 1 && col < gameModel.boardDimensions.value!! - 1) {
-            if (flipDiagonalLeft) {
-                lin--
-                col--
-            } else {
-                lin--
-                col++
-            }
-
-            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
-            if (copyBoard[lin][col] == 0)
-                break
-
-            //Se encontrar uma peça da pessoa que jogou
-            if (copyBoard[lin][col] == gameModel.playerTurn.value?.id) {
-                while (if (flipDiagonalLeft) lin < line && col < column else lin < line && col > column) {
-                    //Volta na direção oposta até ao local inicial e,
-                    //por cada posição que passa, altera a atual pela do jogador que jogou
-                    if (flipDiagonalLeft) {
-                        lin++
-                        col++
-                    } else {
-                        lin++
-                        col--
-                    }
-                    copyBoard[lin][col] = gameModel.playerTurn.value?.id!!
-                }
-                break
-            }
-
-        }
-    }
-
-    /**
-     * Função que vira todas as peças possíveis em ambas as diagonais do fundo
-     */
-    private fun flipDiagonalBottom(copyBoard: Array<IntArray>, line: Int, column: Int, flipDiagonalLeft: Boolean) {
-        var lin = line
-        var col = column
-        while (if (flipDiagonalLeft) lin < gameModel.boardDimensions.value!! - 1 && col >= 1 else lin < gameModel.boardDimensions.value!! - 1 && col < gameModel.boardDimensions.value!! - 1) {
-            if (flipDiagonalLeft) {
-                lin++
-                col--
-            } else {
-                lin++
-                col++
-            }
-
-            //Se passar um "spot" vazio, não deve virar nenhuma peça logo deve sair
-            if (copyBoard[lin][col] == 0)
-                break
-
-            if (copyBoard[lin][col] == gameModel.playerTurn.value?.id) {
-                while (if (flipDiagonalLeft) lin > line && col < column else lin > line && col > column) {
-                    //Volta na direção oposta até ao local inicial e,
-                    //por cada posição que passa, altera a atual pela do jogador que jogou
-                    if (flipDiagonalLeft) {
-                        lin--
-                        col++
-                    } else {
-                        lin--
-                        col--
-                    }
-                    copyBoard[lin][col] = gameModel.playerTurn.value?.id!!
-                }
-                break
-            }
         }
     }
 }
