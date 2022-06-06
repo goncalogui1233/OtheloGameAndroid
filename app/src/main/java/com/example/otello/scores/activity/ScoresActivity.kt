@@ -23,33 +23,30 @@ class ScoresActivity : AppCompatActivity() {
 
         val db = Firebase.firestore
 
-        val collection = db.collection(ConstStrings.FIRESTORE_COLLECTION)
+        db.collection(ConstStrings.FIRESTORE_COLLECTION)
+            .get()
+            .addOnSuccessListener { it ->
+                for (i in 0 until it.size()) {
+                    val name = it.documents[i].get(ConstStrings.FIRESTORE_PLAYER_NAME) as String
+                    val score = (it.documents[i].get(ConstStrings.FIRESTORE_PLAYER_SCORE) as String).toInt()
+                    val opponents = (it.documents[i].get(ConstStrings.FIRESTORE_NUMBER_OPPONENTS) as String).toInt()
+                    val pieces = (it.documents[i].get(ConstStrings.FIRESTORE_PIECES_PLACED) as String).toInt()
 
-        collection.get()
-                .addOnSuccessListener { it ->
-            for (i in 0 until it.size()) {
-                val name = it.documents[i].get(ConstStrings.FIRESTORE_PLAYER_NAME) as String
-                val score = (it.documents[i].get(ConstStrings.FIRESTORE_PLAYER_SCORE) as String).toInt()
-                val opponents = (it.documents[i].get(ConstStrings.FIRESTORE_NUMBER_OPPONENTS) as String).toInt()
-                val pieces = (it.documents[i].get(ConstStrings.FIRESTORE_PIECES_PLACED) as String).toInt()
-
-                arr.add(ScoresClass(name, score, opponents, pieces))
-            }
-
-            arr.sortByDescending { it2 ->
-                it2.playerScore
-            }
-
-            scoresRecyclerView.layoutManager = LinearLayoutManager(this)
-            val adapter = ScoresAdapter(this, arr)
-            scoresRecyclerView.adapter = adapter
-
-            scoresProgressBar.visibility = View.GONE
-        }
-                .addOnFailureListener {
-                    Snackbar.make(scoresRootView, "Error while retrieving scores", Snackbar.LENGTH_SHORT).show()
+                    arr.add(ScoresClass(name, score, opponents, pieces))
                 }
 
+                arr.sortByDescending { it2 ->
+                    it2.playerScore
+                }
 
+                scoresRecyclerView.layoutManager = LinearLayoutManager(this)
+                val adapter = ScoresAdapter(this, arr)
+                scoresRecyclerView.adapter = adapter
+
+                scoresProgressBar.visibility = View.GONE
+            }
+            .addOnFailureListener {
+                Snackbar.make(scoresRootView, "Error while retrieving scores", Snackbar.LENGTH_SHORT).show()
+            }
     }
 }
