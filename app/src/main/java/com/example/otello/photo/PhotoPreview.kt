@@ -21,6 +21,12 @@ class PhotoPreview : DialogFragment() {
 
     var photoPath : String = ""
 
+    var savePhotoListener : OnSavePhoto? = null
+
+    fun interface OnSavePhoto {
+        fun onSaveListener()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -36,7 +42,6 @@ class PhotoPreview : DialogFragment() {
         view.previewImageView.setImageBitmap(picture)
 
         view.btnSavePhoto.setOnClickListener {
-
             val sharedPref = requireActivity().getSharedPreferences(ConstStrings.SHARED_PREFERENCES_INSTANCE, Context.MODE_PRIVATE)
             val picPath = sharedPref.getString(ConstStrings.SHARED_PREFERENCES_PHOTO, "")
 
@@ -53,24 +58,16 @@ class PhotoPreview : DialogFragment() {
                 commit()
             }
 
-            dismiss()
+            savePhotoListener?.onSaveListener()
 
+            dismiss()
         }
 
         view.btnDismissPhoto.setOnClickListener {
 
         }
 
-
-
         return view
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-
-        if(activity is ProfileActivity)
-            (activity as ProfileActivity).onDismiss(dialog)
     }
 
     companion object {

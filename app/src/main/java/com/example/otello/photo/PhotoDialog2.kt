@@ -2,8 +2,6 @@ package com.example.otello.photo
 
 import android.Manifest
 import android.app.Dialog
-import android.content.Context
-import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -20,23 +18,22 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
-import com.example.otello.ProfileActivity
 import com.example.otello.R
 import kotlinx.android.synthetic.main.photo_dialog.*
 import kotlinx.android.synthetic.main.photo_dialog.view.*
 import java.io.File
 import java.lang.Exception
-import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.random.Random
-import kotlin.random.nextInt
 
 class PhotoDialog2 : DialogFragment() {
 
     private lateinit var cameraExecutor: ExecutorService
     private var directory : String = ""
     private var imageCapture : ImageCapture? = null
+
+    var saveListener : PhotoPreview.OnSavePhoto? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
@@ -77,7 +74,8 @@ class PhotoDialog2 : DialogFragment() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    @Deprecated("")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when(requestCode) {
             cameraRequestCode -> {
                 if (!(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
@@ -98,17 +96,20 @@ class PhotoDialog2 : DialogFragment() {
         val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
 
         imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(requireContext()),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                        PhotoPreview.newInstance(file.absolutePath).show(requireActivity().supportFragmentManager, "KKK")
-                        dismiss()
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    PhotoPreview.newInstance(file.absolutePath).apply {
+                        this.savePhotoListener = saveListener
+                        show(requireActivity().supportFragmentManager, "Preview")
                     }
+                    dismiss()
+                }
 
-                    override fun onError(exception: ImageCaptureException) {
-                        Toast.makeText(requireContext(), "Photo Not Saved", Toast.LENGTH_SHORT).show()
-                    }
+                override fun onError(exception: ImageCaptureException) {
+                    Toast.makeText(requireContext(), "Photo Not Saved", Toast.LENGTH_SHORT).show()
+                }
 
-                })
+            })
     }
 
     private fun startCamera() {
