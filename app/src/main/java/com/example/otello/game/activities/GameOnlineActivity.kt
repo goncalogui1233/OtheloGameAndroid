@@ -16,14 +16,14 @@ import com.example.otello.game.repository.GameRepository
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
 import com.example.otello.game.viewmodel.GameOnlineViewModel
-import com.example.otello.network.manager.NetworkManager
+import com.example.otello.network.manager.LobbyManager
 import com.example.otello.network.model.ConnType
 import com.example.otello.utils.ConstStrings
+import com.example.otello.utils.FirestoreUtils
+import com.example.otello.utils.NetworkUtils
 import com.example.otello.utils.OtheloUtils
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.android.synthetic.main.activity_game.*
+import kotlinx.android.synthetic.main.fragment_game.*
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -43,13 +43,15 @@ class GameOnlineActivity : AppCompatActivity() {
     var currPlayerId : Int = -1
     var gameRunning = true
     var winnerObsTriggered = false
+    var myPlayerId : Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_game)
+        setContentView(R.layout.fragment_game)
 
         connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE)!!)
         gameMode = intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)!!
+        myPlayerId = intent.getIntExtra(ConstStrings.PLAYER_ID, -1)
 
         if(connType == ConnType.SERVER) {
             v = ViewModelProvider(this).get(GameOnlineViewModel::class.java)
@@ -75,13 +77,13 @@ class GameOnlineActivity : AppCompatActivity() {
         passTurnBtn.setOnClickListener {
             when(connType) {
                 ConnType.SERVER -> {
-                    v.passTurn()
+                    v.passTurn(myPlayerId)
                 }
                 ConnType.CLIENT -> {
-                    if(currPlayerId == NetworkManager.playerId) {
+                    if(currPlayerId == myPlayerId) {
                         val json = JSONObject()
                         json.put(ConstStrings.TYPE, ConstStrings.GAME_PASS_TURN)
-                        NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                        NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
                     }
                 }
             }
@@ -102,7 +104,7 @@ class GameOnlineActivity : AppCompatActivity() {
             if(isServer) {
                 val linha = i / v.gameModel.boardDimensions.value!!
                 val coluna = i.rem(v.gameModel.boardDimensions.value!!)
-                if (v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                if (v.gameModel.playerTurn.value!!.id == myPlayerId) {
                     if (v.gameModel.changePiecesMove.value!!) {
                         v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
                         if (v.gameModel.changePieceArray.size == 3) {
@@ -117,14 +119,14 @@ class GameOnlineActivity : AppCompatActivity() {
             else {
                 val linha = i / boardD
                 val coluna = i.rem(boardD)
-                if (currPlayerId == NetworkManager.playerId) {
+                if (currPlayerId == myPlayerId) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_PLACED_PIECE)
                     json.put(ConstStrings.GAME_PIECE_POSITION, JSONObject()
                             .put(ConstStrings.BOARD_LINE, linha)
                             .put(ConstStrings.BOARD_COLUMN, coluna))
 
-                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                    NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
                 }
             }
         }
@@ -182,14 +184,15 @@ class GameOnlineActivity : AppCompatActivity() {
 
     private val observeWinner = Observer<Jogador> {
         winnerObsTriggered = true
-        postFirestoreData(it)
+        FirestoreUtils.postFirestoreData(it, v.gameModel.numJogadores.value!!.size, v.gameModel.occupiedPlaces.value!!)
+
 
         val jsonData = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
             .put(ConstStrings.PLAYER_NAME, it.name).put(ConstStrings.PLAYER_SCORE, it.score)
 
         for(i in v.gameModel.numJogadores.value!!) {
             if(i.gameSocket != null) {
-                NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                NetworkUtils.sendInfo(i.gameSocket!!, jsonData.toString())
             }
         }
 
@@ -225,7 +228,7 @@ class GameOnlineActivity : AppCompatActivity() {
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
         if(shouldSeeMoves) {
-            if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+            if(v.gameModel.playerTurn.value!!.id == myPlayerId) {
                 adapter.setPlayerMoves(it)
             }
             else {
@@ -243,7 +246,7 @@ class GameOnlineActivity : AppCompatActivity() {
         //Check if all the players can play
         v.checkPlay()
 
-        if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+        if(v.gameModel.playerTurn.value!!.id == myPlayerId) {
             if(v.gameModel.playPositions.value!!.size > 0) {
                 passTurnBtn.visibility = View.GONE
             }
@@ -260,12 +263,12 @@ class GameOnlineActivity : AppCompatActivity() {
         thread {
             val json = JSONObject()
             json.put(ConstStrings.TYPE, ConstStrings.CLIENT_WANT_DATA)
-            NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+            NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
 
             while (gameRunning) {
                 var str: String = ""
                 try {
-                    str = BufferedReader(InputStreamReader(NetworkManager.gameSocket!!.getInputStream())).readLine()
+                    str = BufferedReader(InputStreamReader(LobbyManager.gameSocket!!.getInputStream())).readLine()
                 }
                 catch (e: Exception) {
                     return@thread
@@ -343,7 +346,7 @@ class GameOnlineActivity : AppCompatActivity() {
                                     playerImageView.setImageBitmap(OtheloUtils.getBitmapFromString(photoObj.optString(ConstStrings.PLAYER_PHOTO)))
                                 }
                                 val json = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_UPDATE_INFOS)
-                                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                                NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
                             }
                         }
 
@@ -405,7 +408,7 @@ class GameOnlineActivity : AppCompatActivity() {
 
                                 if (json.optBoolean(ConstStrings.GAME_VALID_PIECE) && newPos != null) {
                                     runOnUiThread {
-                                        if (currPlayerId != NetworkManager.playerId) {
+                                        if (currPlayerId != myPlayerId) {
                                             adapter.setPlayerMoves(arrayListOf())
                                         }
                                         else {
@@ -422,7 +425,7 @@ class GameOnlineActivity : AppCompatActivity() {
                                         }
                                         adapter.notifyDataSetChanged()
 
-                                        if(currPlayerId == NetworkManager.playerId) {
+                                        if(currPlayerId == myPlayerId) {
                                             if (json.optInt(ConstStrings.GAME_NUMBER_MOVES) > 0) {
                                                 passTurnBtn.visibility = View.GONE
                                             } else {
@@ -522,7 +525,7 @@ class GameOnlineActivity : AppCompatActivity() {
             R.id.pieceTrigger -> pieceAction()
             R.id.updateInfos -> {
                 val json = JSONObject().put(ConstStrings.TYPE, ConstStrings.GAME_UPDATE_INFOS)
-                NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
             }
         }
         return super.onOptionsItemSelected(item)
@@ -531,7 +534,7 @@ class GameOnlineActivity : AppCompatActivity() {
     private fun movesAction() {
         when(connType) {
             ConnType.SERVER -> {
-                if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                if(v.gameModel.playerTurn.value!!.id == myPlayerId) {
                     shouldSeeMoves = !shouldSeeMoves
                     if (shouldSeeMoves)
                         adapter.setPlayerMoves(v.gameModel.playPositions.value!!)
@@ -543,10 +546,10 @@ class GameOnlineActivity : AppCompatActivity() {
             }
 
             ConnType.CLIENT -> {
-                if(currPlayerId == NetworkManager.playerId) {
+                if(currPlayerId == myPlayerId) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_PLAYER_SEE_MOVES)
-                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                    NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
                 }
             }
         }
@@ -555,7 +558,7 @@ class GameOnlineActivity : AppCompatActivity() {
     private fun bombAction() {
         when(connType) {
             ConnType.SERVER -> {
-                if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                if(v.gameModel.playerTurn.value!!.id == myPlayerId) {
                     if (!v.gameModel.changePiecesMove.value!!) {
                         if (v.gameModel.bombMove.value!!) {
                             v.gameModel.bombMove.value = false
@@ -575,10 +578,10 @@ class GameOnlineActivity : AppCompatActivity() {
                 }
             }
             ConnType.CLIENT -> {
-                if(currPlayerId == NetworkManager.playerId) {
+                if(currPlayerId == myPlayerId) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_BOMB_MOVE_ON)
-                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                    NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
                 }
             }
         }
@@ -587,7 +590,7 @@ class GameOnlineActivity : AppCompatActivity() {
     private fun pieceAction() {
         when(connType) {
             ConnType.SERVER -> {
-                if(v.gameModel.playerTurn.value!!.id == NetworkManager.playerId) {
+                if(v.gameModel.playerTurn.value!!.id == myPlayerId) {
                     if (!v.gameModel.bombMove.value!!) {
                         if (!v.gameModel.changePiecesMove.value!!) {
                             v.gameModel.changePiecesMove.value = true
@@ -609,43 +612,13 @@ class GameOnlineActivity : AppCompatActivity() {
             }
 
             ConnType.CLIENT -> {
-                if(currPlayerId == NetworkManager.playerId) {
+                if(currPlayerId == myPlayerId) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_PIECE_MOVE_ON)
-                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                    NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
                 }
             }
         }
-    }
-
-    fun postFirestoreData(player: Jogador) {
-        val db = Firebase.firestore
-
-        val record = HashMap<String, String>()
-        val collection = db.collection("scoreCollection")
-
-        record["Name"] = player.name
-        record["Score"] = player.score.toString()
-        record["Opponents"] = v.gameModel.numJogadores.value!!.size.toString()
-        record["FilledPieces"] = v.gameModel.occupiedPlaces.value!!.toString()
-
-        collection.get().addOnSuccessListener {
-                    if (it.size() < 5) { //adiciona logo o jogador
-                        collection.document((it.size() + 1).toString()).set(record)
-                    } else { //Dos que existem, verifica o que tem menor pontuação...
-                        var lowerScore = it.documents[0]
-                        for (i in 1 until it.size()) {
-                            if ((it.documents[i].get("Score") as String).toInt() < (lowerScore.get("Score") as String).toInt()) {
-                                lowerScore = it.documents[i]
-                            }
-                        }
-
-                        collection.document(lowerScore.id).set(record)
-                    }
-                }
-                .addOnFailureListener {
-                    Log.e("GameOnlineActivity", "Not possible to get data from Firestore")
-                }
     }
 
     override fun onDestroy() {
@@ -653,7 +626,7 @@ class GameOnlineActivity : AppCompatActivity() {
             ConnType.SERVER -> {
                 if(!winnerObsTriggered) {
                     v.serverLeaveGame()
-                    postFirestoreData(v.gameModel.playerWinner.value!!)
+                    FirestoreUtils.postFirestoreData(v.gameModel.playerWinner.value!!, v.gameModel.numJogadores.value!!.size, v.gameModel.occupiedPlaces.value!!)
                 }
                 GameRepository.resetGameModel()
             }
@@ -663,7 +636,7 @@ class GameOnlineActivity : AppCompatActivity() {
                 if (!winnerObsTriggered) {
                     val json = JSONObject()
                     json.put(ConstStrings.TYPE, ConstStrings.GAME_END_ABRUPTLY)
-                    NetworkManager.sendInfo(NetworkManager.gameSocket!!, json.toString())
+                    NetworkUtils.sendInfo(LobbyManager.gameSocket!!, json.toString())
                 }
             }
         }

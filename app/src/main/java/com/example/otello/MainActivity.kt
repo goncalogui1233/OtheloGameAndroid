@@ -1,6 +1,8 @@
 package com.example.otello
 
 import android.content.Intent
+import android.net.InetAddresses
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.InputFilter
@@ -11,9 +13,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.otello.game.activities.GameActivity
 import com.example.otello.network.model.ConnType
-import com.example.otello.network.activities.NetworkActivity
+import com.example.otello.network.activities.LobbyActivity
 import com.example.otello.scores.activity.ScoresActivity
-import com.example.otello.scores.model.ScoresClass
 import com.example.otello.utils.ConstStrings
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -24,7 +25,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         startLocalGame.setOnClickListener {
-            startActivity(Intent(this, GameActivity::class.java))
+            startActivity(Intent(this, GameActivity::class.java).apply {
+                putExtra(ConstStrings.INTENT_GAME_MODE, ConstStrings.INTENT_GAME_LOCAL)
+            })
         }
 
         startOnlineGame.setOnClickListener {
@@ -45,22 +48,24 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun alertDialogOnline(){
-        AlertDialog.Builder(this)
-            .setTitle(resources.getString(R.string.onlineMode))
-            .setMessage(resources.getString(R.string.clientServer))
-            .setPositiveButton(resources.getString(R.string.server)) { _, _ ->
-                val it = Intent(this, NetworkActivity::class.java)
-                it.putExtra(ConstStrings.INTENT_CONN_TYPE, ConnType.SERVER.toString())
+    private fun alertDialogOnline(){
+        AlertDialog.Builder(this).apply {
+            title = resources.getString(R.string.onlineMode)
+            setMessage(resources.getString(R.string.clientServer))
+            setPositiveButton(resources.getString(R.string.server)) { _, _ ->
+                val it = Intent(this@MainActivity, LobbyActivity::class.java).apply {
+                    putExtra(ConstStrings.INTENT_CONN_TYPE, ConnType.SERVER.toString())
+                }
                 startActivity(it)
             }
-            .setNegativeButton(resources.getString(R.string.client)) { _, _ ->
+            setNegativeButton(resources.getString(R.string.client)) { _, _ ->
                 insertIpDialog()
             }
-            .show()
+            show()
+        }
     }
 
-    fun insertIpDialog() {
+    private fun insertIpDialog() {
         val edtBox = EditText(this).apply {
             maxLines = 1
             filters = arrayOf(object : InputFilter {
@@ -72,22 +77,34 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
-        AlertDialog.Builder(this)
-            .setTitle(resources.getString(R.string.ipAddress))
-            .setMessage(resources.getString(R.string.insertIP))
-            .setView(edtBox)
-            .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+        AlertDialog.Builder(this).apply {
+            title = resources.getString(R.string.ipAddress)
+            setMessage(resources.getString(R.string.insertIP))
+            setView(edtBox)
+            setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                 val ip = edtBox.text
-                if (ip.isEmpty() || !Patterns.IP_ADDRESS.matcher(ip).matches()) {
-                    Toast.makeText(this, resources.getString(R.string.errorIP), Toast.LENGTH_LONG).show()
+                if (ip.isEmpty() || !checkIpAddress(ip.toString())) {
+                    Toast.makeText(this@MainActivity, resources.getString(R.string.errorIP), Toast.LENGTH_LONG).show()
                 } else {
-                    val it = Intent(this, NetworkActivity::class.java)
-                    it.putExtra(ConstStrings.INTENT_IP_ADDR, ip.toString())
-                    it.putExtra(ConstStrings.INTENT_CONN_TYPE, ConnType.CLIENT.toString())
+                    val it = Intent(this@MainActivity, LobbyActivity::class.java).apply {
+                        putExtra(ConstStrings.INTENT_IP_ADDR, ip.toString())
+                        putExtra(ConstStrings.INTENT_CONN_TYPE, ConnType.CLIENT.toString())
+                    }
                     startActivity(it)
                 }
             }
-            .show()
+            show()
+        }
+    }
+
+    private fun checkIpAddress(ip : String) : Boolean {
+
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            InetAddresses.isNumericAddress(ip)
+        } else {
+            Patterns.IP_ADDRESS.matcher(ip).matches()
+        }
+
     }
 
 }

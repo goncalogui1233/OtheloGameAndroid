@@ -15,7 +15,7 @@
             android:name=".scores.activity.ScoresActivity"
             android:label="@string/highScores" />
         <activity
-            android:name=".network.activities.NetworkActivity"
+            android:name=".network.activities.LobbyActivity"
             android:label="@string/title_lobby" />
         <activity android:name=".ProfileActivity" />
         <activity

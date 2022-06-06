@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.otello.game.model.*
 import com.example.otello.game.repository.GameRepository
-import com.example.otello.network.manager.NetworkManager
 import com.example.otello.utils.ConstStrings
+import com.example.otello.utils.NetworkUtils
 import com.example.otello.utils.OtheloUtils
 import org.json.JSONArray
 import org.json.JSONException
@@ -118,7 +118,7 @@ class GameOnlineViewModel : ViewModel() {
                 for (i in gameModel.numJogadores.value!!) {
                     if (i.gameSocket != null) {
                         val jsonData = sendTurnInfos(addedPieces, turnPlayer, validPositions)
-                        NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                        NetworkUtils.sendInfo(i.gameSocket!!, jsonData.toString())
                     }
                 }
             }
@@ -186,7 +186,7 @@ class GameOnlineViewModel : ViewModel() {
             for (i in gameModel.numJogadores.value!!) {
                 if (i.gameSocket != null) {
                     val jsonData = sendTurnInfos(addedPieces, turnPlayer, validPositions)
-                    NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                    NetworkUtils.sendInfo(i.gameSocket!!, jsonData.toString())
                 }
             }
         }
@@ -405,7 +405,7 @@ class GameOnlineViewModel : ViewModel() {
                             }*/
                             jsonData.put(ConstStrings.CURRENT_PLAYER, currentPlayer)
 
-                            NetworkManager.sendInfo(socket, jsonData.toString())
+                            NetworkUtils.sendInfo(socket, jsonData.toString())
                         }
 
                         ConstStrings.GAME_PASS_TURN -> {
@@ -419,7 +419,7 @@ class GameOnlineViewModel : ViewModel() {
 
                             for(i in gameModel.numJogadores.value!!) {
                                 if(i.gameSocket != null) {
-                                    NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                                    NetworkUtils.sendInfo(i.gameSocket!!, jsonData.toString())
                                 }
                             }
                         }
@@ -439,7 +439,7 @@ class GameOnlineViewModel : ViewModel() {
                                         .put(ConstStrings.BOARD_COLUMN, i.coluna))
                                 }
                                 jsonData.put(ConstStrings.GAME_POSSIBLE_POSITIONS, movesArray)
-                                NetworkManager.sendInfo(socket, jsonData.toString())
+                                NetworkUtils.sendInfo(socket, jsonData.toString())
                             }
                         }
 
@@ -462,7 +462,7 @@ class GameOnlineViewModel : ViewModel() {
                                     jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_PIECE_MOVE_IS_ACTIVATED)
                                 }
                             }
-                            NetworkManager.sendInfo(socket, jsonData.toString())
+                            NetworkUtils.sendInfo(socket, jsonData.toString())
                         }
 
                         ConstStrings.GAME_PIECE_MOVE_ON -> {
@@ -488,7 +488,7 @@ class GameOnlineViewModel : ViewModel() {
                                     jsonData.put(ConstStrings.STATUS, ConstStrings.GAME_BOMB_MOVE_IS_ACTIVATED)
                                 }
                             }
-                            NetworkManager.sendInfo(socket, jsonData.toString())
+                            NetworkUtils.sendInfo(socket, jsonData.toString())
                         }
 
                         ConstStrings.GAME_CHECK_PLACES -> {
@@ -502,7 +502,7 @@ class GameOnlineViewModel : ViewModel() {
                             }
                             jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PLACES_PLAY)
                             jsonData.put(ConstStrings.GAME_PLACES, jsonArray)
-                            NetworkManager.sendInfo(socket, jsonData.toString())
+                            NetworkUtils.sendInfo(socket, jsonData.toString())
                         }
 
                         ConstStrings.GAME_PLACED_PIECE -> {
@@ -522,7 +522,7 @@ class GameOnlineViewModel : ViewModel() {
                                 } else {
                                     jsonData.put(ConstStrings.TYPE, ConstStrings.GAME_PUT_NEW_PIECE)
                                     jsonData.put(ConstStrings.GAME_VALID_PIECE, false)
-                                    NetworkManager.sendInfo(socket, jsonData.toString())
+                                    NetworkUtils.sendInfo(socket, jsonData.toString())
                                 }
                             }
                         }
@@ -540,7 +540,7 @@ class GameOnlineViewModel : ViewModel() {
 
                             val jsonObject = sendTurnInfos(addedPieces, gameModel.playerTurn.value!!, gameModel.playPositions.value!!)
                             jsonObject.put(ConstStrings.TYPE, ConstStrings.GAME_PUT_NEW_PIECE)
-                            NetworkManager.sendInfo(socket, jsonObject.toString())
+                            NetworkUtils.sendInfo(socket, jsonObject.toString())
                         }
 
                         ConstStrings.GAME_END_ABRUPTLY -> {
@@ -563,8 +563,8 @@ class GameOnlineViewModel : ViewModel() {
         }
     }
 
-    fun passTurn() {
-        if(gameModel.playerTurn.value?.id == NetworkManager.playerId) {
+    fun passTurn(myPlayerId : Int) {
+        if(gameModel.playerTurn.value?.id == myPlayerId) {
             gameModel.playerTurn.value = checkNextPlayer()
             gameModel.playPositions.value = getPossiblePositions(gameModel.playerTurn.value!!)
 
@@ -580,7 +580,7 @@ class GameOnlineViewModel : ViewModel() {
 
             for(i in gameModel.numJogadores.value!!) {
                 if(i.gameSocket != null) {
-                    NetworkManager.sendInfo(i.gameSocket!!, jsonData.toString())
+                    NetworkUtils.sendInfo(i.gameSocket!!, jsonData.toString())
                 }
             }
         }
@@ -605,7 +605,7 @@ class GameOnlineViewModel : ViewModel() {
 
         for(i in gameModel.numJogadores.value!!)
             if(i.gameSocket != null) {
-                NetworkManager.sendInfo(i.gameSocket!!, json.toString())
+                NetworkUtils.sendInfo(i.gameSocket!!, json.toString())
             }
 
 

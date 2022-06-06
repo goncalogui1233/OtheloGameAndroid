@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Base64
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -17,23 +18,24 @@ import com.example.otello.game.activities.GameOnlineActivity
 import com.example.otello.game.repository.GameRepository
 import com.example.otello.network.model.ConnType
 import com.example.otello.network.model.LobbyStates
-import com.example.otello.network.viewmodel.NetworkVM
+import com.example.otello.network.viewmodel.LobbyViewModel
 import com.example.otello.utils.ConstStrings
 import com.example.otello.utils.OtheloUtils
 import kotlinx.android.synthetic.main.activity_network.*
 import java.io.ByteArrayOutputStream
 
 
-class NetworkActivity : AppCompatActivity() {
+class LobbyActivity : AppCompatActivity() {
 
-    var networkVM : NetworkVM? = null
+    val lobbyViewModel : LobbyViewModel by viewModels()
     var connType : ConnType? = null
+
+    var myPlayerId : Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_network)
 
-        networkVM = ViewModelProvider(this).get(NetworkVM::class.java)
         connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE).toString())
 
         //Get profile data from Shared Preferences
@@ -53,20 +55,20 @@ class NetworkActivity : AppCompatActivity() {
                 val rotation = OtheloUtils.rotateBitmap(playerPhotoPath)
                 realBitmap = Bitmap.createBitmap(imageBitmap, 0, 0, imageBitmap.width, imageBitmap.height, rotation, true)
             }
-            networkVM!!.initServer(playerName, realBitmap)
+            lobbyViewModel.initServer(playerName, realBitmap)
             ipTextView.text = ipAddress
-            networkVM!!.clientsConnected.observe(this, observeNumClients)
+            lobbyViewModel.getConnectedClients().observe(this, observeNumClients)
 
             btnStartGame.setOnClickListener {
                 btnStartGame.isEnabled = false
-                GameRepository.numJogadores.value = networkVM!!.jogadores
-                networkVM!!.checkServerInfos = true
-                networkVM!!.stopServerSocket()
-                networkVM!!.startGame()
+                lobbyViewModel.checkServerInfos = true
+                lobbyViewModel.stopServerSocket()
+                lobbyViewModel.startGame()
 
                 val intent = Intent(this, GameOnlineActivity::class.java)
                 intent.putExtra(ConstStrings.INTENT_CONN_TYPE, connType.toString())
                 intent.putExtra(ConstStrings.INTENT_GAME_MODE, ConstStrings.INTENT_GAME_ONLINE)
+                intent.putExtra(ConstStrings.PLAYER_ID, 0)
 
                 startActivity(intent)
                 finish()
@@ -83,14 +85,16 @@ class NetworkActivity : AppCompatActivity() {
                 val realBitmap = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height, rotation, true)
 
                 val baos = ByteArrayOutputStream()
-                realBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos) // bm is the bitmap object
+                realBitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos) // bm is the bitmap object
                 encodedImage = Base64.encodeToString(baos.toByteArray(), Base64.URL_SAFE)
             }
 
-            networkVM!!.initClient(connIp!!, playerName, encodedImage)
+            lobbyViewModel.initClient(connIp!!, playerName, encodedImage)
             ipTextView.text = connIp
-            networkVM!!.infos.observe(this, obsInsfos)
+            lobbyViewModel.infos.observe(this, obsInsfos)
         }
+
+        lobbyViewModel.getPlayerId().observe(this, obsPlayerId)
     }
 
     private val observeNumClients = Observer<Int> {
@@ -109,8 +113,7 @@ class NetworkActivity : AppCompatActivity() {
         when(it) {
             LobbyStates.GAME_STARTING -> {
                 infos.text = resources.getString(R.string.gameStarting)
-                networkVM!!.checkClientInfos = true
-                //networkVM!!.clientEnterGame()
+                lobbyViewModel.checkClientInfos = true
 
                 //TODO -> Remove this sleep...
                 Thread.sleep(2000)
@@ -118,6 +121,7 @@ class NetworkActivity : AppCompatActivity() {
                 val intent = Intent(this, GameOnlineActivity::class.java)
                 intent.putExtra(ConstStrings.INTENT_CONN_TYPE, connType.toString())
                 intent.putExtra(ConstStrings.INTENT_GAME_MODE, ConstStrings.INTENT_GAME_ONLINE)
+                intent.putExtra(ConstStrings.PLAYER_ID, myPlayerId)
                 startActivity(intent)
                 finish()
             }
@@ -134,16 +138,16 @@ class NetworkActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private val obsPlayerId = Observer<Int> {
+        myPlayerId = it
     }
 
     override fun onBackPressed() {
         super.onBackPressed()
         if (connType == ConnType.SERVER) {
-            networkVM!!.killServer()
+            lobbyViewModel.killServer()
         } else {
-            networkVM!!.clientLeave()
+            lobbyViewModel.clientLeave()
         }
     }
 
