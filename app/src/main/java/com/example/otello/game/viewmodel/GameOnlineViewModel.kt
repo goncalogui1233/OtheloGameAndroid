@@ -58,6 +58,11 @@ class GameOnlineViewModel : ViewModel() {
         alterarPontuacoes(gameModel.board.value!!)
     }
 
+    fun setupPlayers(numPlayers: Int) {
+        for(i in 0 until numPlayers) {
+            gameModel.numJogadores.value?.add(Jogador(i+1))
+        }
+    }
 
     /**
      * Função que insere uma nova peça no tabuleiro

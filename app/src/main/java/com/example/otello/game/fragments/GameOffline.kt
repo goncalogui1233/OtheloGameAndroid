@@ -10,16 +10,17 @@ import com.example.otello.game.model.Posicoes
 import kotlinx.android.synthetic.main.fragment_game.view.*
 
 class GameOffline : GameBaseFragment() {
-    val boardD = 8
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_game, container, false)
 
-        v.initBoard(boardD * boardD, boardD, 2)
+        v.initBoard()
         v.gameModel.board.observe(viewLifecycleOwner, observeBoard)
         v.gameModel.playerTurn.observe(viewLifecycleOwner, observePlayerTurn)
         v.gameModel.playPositions.observe(viewLifecycleOwner, observePlayerMoves)
-        v.gameModel.endGame.observe(viewLifecycleOwner, observeEndGame)
+        v.gameModel.endGame.observe(viewLifecycleOwner, observeGameStatus)
+        v.gameModel.currentScores.observe(viewLifecycleOwner, observeScoreChange)
+        v.gameModel.playerWinner.observe(viewLifecycleOwner, observePlayerWinner)
 
         adapter = GridAdapter(requireContext(), v.gameModel.board.value!!, v.gameModel.boardDimensions.value!!)
         //boardGrid.numColumns = v.gameModel.boardDimensions.value!!

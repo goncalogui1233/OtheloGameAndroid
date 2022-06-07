@@ -9,15 +9,30 @@ import com.example.otello.game.fragments.GameBaseFragment
 import com.example.otello.game.fragments.GameOffline
 import com.example.otello.game.fragments.GameOnline
 import com.example.otello.game.repository.GameRepository
+import com.example.otello.network.model.ConnType
 import com.example.otello.utils.ConstStrings
 import kotlinx.android.synthetic.main.activity_game.*
 
 class GameActivity : AppCompatActivity() {
     lateinit var fragment : GameBaseFragment
 
+    private lateinit var connType : ConnType
+    private var myPlayerId : Int = -1
+    var gameMode : String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
+
+        if(intent.hasExtra(ConstStrings.INTENT_CONN_TYPE)) {
+            connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE)!!)
+        }
+
+        intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)?.let {
+            gameMode = it
+        }
+
+        myPlayerId = intent.getIntExtra(ConstStrings.PLAYER_ID, -1)
 
         when(intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)) {
             ConstStrings.INTENT_GAME_LOCAL -> fragment = GameOffline()

@@ -49,10 +49,6 @@ class GameOnlineActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_game)
 
-        connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE)!!)
-        gameMode = intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)!!
-        myPlayerId = intent.getIntExtra(ConstStrings.PLAYER_ID, -1)
-
         if(connType == ConnType.SERVER) {
             v = ViewModelProvider(this).get(GameOnlineViewModel::class.java)
             v.initBoard()
@@ -629,6 +625,7 @@ class GameOnlineActivity : AppCompatActivity() {
                     FirestoreUtils.postFirestoreData(v.gameModel.playerWinner.value!!, v.gameModel.numJogadores.value!!.size, v.gameModel.occupiedPlaces.value!!)
                 }
                 GameRepository.resetGameModel()
+                LobbyManager.resetManager()
             }
 
             ConnType.CLIENT -> {

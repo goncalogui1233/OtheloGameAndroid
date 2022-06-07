@@ -10,13 +10,12 @@ class GameViewModel : ViewModel(){
     
     val gameModel = GameRepository
 
-    fun initBoard(boardSize : Int, boardDimen : Int, numPlayers : Int) {
-        //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
-        gameModel.board.value = Array(boardSize) { IntArray(boardSize)}
-        gameModel.boardDimensions.value = boardDimen
+    fun initBoard() {
+        setupPlayers(2)
 
-        for(i in 0 until numPlayers)
-            gameModel.numJogadores.value?.add(Jogador(i+1))
+        //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
+        gameModel.board.value = Array(64) { IntArray(8)}
+        gameModel.boardDimensions.value = 8
 
         //Organize board when numJogadores = 2
         if(gameModel.numJogadores.value?.size == 2) {
@@ -24,27 +23,16 @@ class GameViewModel : ViewModel(){
             gameModel.board.value!![3][4] = 2
             gameModel.board.value!![4][3] = 2
             gameModel.board.value!![4][4] = 1
-        } //Organize board when numJogadores = 3
-        else if(gameModel.numJogadores.value?.size == 3){
-            gameModel.board.value!![2][4] = 1
-            gameModel.board.value!![2][5] = 2
-            gameModel.board.value!![3][4] = 2
-            gameModel.board.value!![3][5] = 1
-
-            gameModel.board.value!![6][2] = 3
-            gameModel.board.value!![6][3] = 1
-            gameModel.board.value!![7][2] = 1
-            gameModel.board.value!![7][3] = 3
-
-            gameModel.board.value!![6][6] = 2
-            gameModel.board.value!![6][7] = 3
-            gameModel.board.value!![7][6] = 3
-            gameModel.board.value!![7][7] = 2
         }
 
         alterarPontuacoes(gameModel.board.value!!)
     }
 
+    fun setupPlayers(numPlayers: Int) {
+        for(i in 0 until numPlayers) {
+            gameModel.numJogadores.value?.add(Jogador(i+1))
+        }
+    }
 
     /**
      * Função que insere uma nova peça no tabuleiro
@@ -230,6 +218,8 @@ class GameViewModel : ViewModel(){
         for(i in 0 until gameModel.numJogadores.value!!.size){
             gameModel.numJogadores.value!![i].score = pont[i]
         }
+
+        gameModel.currentScores.postValue(pont)
     }
 
     /**

@@ -33,9 +33,8 @@ object LobbyManager {
         else {
             p.lobbySocket = socketLobby
             p.gameSocket = socketGame
-            clientsConnected.postValue(clientsConnected.value!! + 1)
         }
-
+        clientsConnected.postValue(clientsConnected.value!! + 1)
         jogadores.add(p)
     }
 
@@ -130,6 +129,12 @@ object LobbyManager {
 
     fun getPlayerId() : MutableLiveData<Int> {
         return playerId
+    }
+
+    fun resetManager() {
+        playerId.value = -1
+        clientsConnected.value = 0
+        jogadores.clear()
     }
 
 

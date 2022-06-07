@@ -4,7 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.view.View
@@ -16,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
 import com.example.otello.game.activities.GameOnlineActivity
 import com.example.otello.game.repository.GameRepository
+import com.example.otello.network.manager.LobbyManager
 import com.example.otello.network.model.ConnType
 import com.example.otello.network.model.LobbyStates
 import com.example.otello.network.viewmodel.LobbyViewModel
@@ -27,7 +31,7 @@ import java.io.ByteArrayOutputStream
 
 class LobbyActivity : AppCompatActivity() {
 
-    val lobbyViewModel : LobbyViewModel by viewModels()
+    private val lobbyViewModel : LobbyViewModel by viewModels()
     var connType : ConnType? = null
 
     var myPlayerId : Int = -1
@@ -37,6 +41,11 @@ class LobbyActivity : AppCompatActivity() {
         setContentView(R.layout.activity_network)
 
         connType = ConnType.valueOf(intent.getStringExtra(ConstStrings.INTENT_CONN_TYPE).toString())
+
+        if(!checkWifiAvaliable()) {
+            Toast.makeText(this, "Not connected to WIFI, try again", Toast.LENGTH_LONG).show()
+            onBackPressed()
+        }
 
         //Get profile data from Shared Preferences
         val pref = getSharedPreferences(ConstStrings.SHARED_PREFERENCES_INSTANCE, Context.MODE_PRIVATE)
@@ -68,7 +77,7 @@ class LobbyActivity : AppCompatActivity() {
                 val intent = Intent(this, GameOnlineActivity::class.java)
                 intent.putExtra(ConstStrings.INTENT_CONN_TYPE, connType.toString())
                 intent.putExtra(ConstStrings.INTENT_GAME_MODE, ConstStrings.INTENT_GAME_ONLINE)
-                intent.putExtra(ConstStrings.PLAYER_ID, 0)
+                intent.putExtra(ConstStrings.PLAYER_ID, myPlayerId)
 
                 startActivity(intent)
                 finish()
@@ -149,6 +158,30 @@ class LobbyActivity : AppCompatActivity() {
         } else {
             lobbyViewModel.clientLeave()
         }
+        LobbyManager.resetManager()
     }
 
+
+    private fun checkWifiAvaliable(): Boolean {
+        val cm = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val networkCapabilities = cm.activeNetwork ?: return false
+            val actNw = cm.getNetworkCapabilities(networkCapabilities) ?: return false
+            return when {
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                else -> false
+            }
+        } else {
+            cm.run {
+                cm.activeNetworkInfo?.run {
+                    return when (type) {
+                        ConnectivityManager.TYPE_WIFI -> true
+                        else -> false
+                    }
+                }
+            }
+        }
+        return false
+    }
 }

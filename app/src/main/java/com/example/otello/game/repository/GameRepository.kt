@@ -14,6 +14,7 @@ object GameRepository {
     var playPositions = MutableLiveData<ArrayList<Posicoes>>()
     var occupiedPlaces = MutableLiveData<Int>()
     var playerWinner = MutableLiveData<Jogador>()
+    var currentScores = MutableLiveData<ArrayList<Int>>()
 
     var endGame = MutableLiveData<EndGameStates>()
     var bombMove = MutableLiveData(false)

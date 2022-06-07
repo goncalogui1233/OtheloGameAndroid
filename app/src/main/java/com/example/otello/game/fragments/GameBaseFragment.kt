@@ -30,14 +30,16 @@ abstract class GameBaseFragment : Fragment() {
         //Atualizar o ecrã sobre o atual jogador
         playerTurnInfo.text = resources.getString(R.string.player)
             .replace("[X]", v.gameModel.playerTurn.value?.id.toString())
-
-        //Ao mudar o jogador, atualizar as pontuações
-        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
-            .replace("[A]", v.gameModel.numJogadores.value!![0].score.toString())
-            .replace("[B]", v.gameModel.numJogadores.value!![1].score.toString())
     }
 
-    val observeEndGame = Observer<EndGameStates> {
+    val observeScoreChange = Observer<ArrayList<Int>> {
+        //Atualizar as pontuações
+        pontuacoesInfo.text = resources.getString(R.string.twoPlayerScore)
+            .replace("[A]", it[0].toString())
+            .replace("[B]", it[1].toString())
+    }
+
+    val observeGameStatus = Observer<EndGameStates> {
         if(it == EndGameStates.FINISHED){
             if(v.gameModel.numJogadores.value != null) {
                 var winner = v.gameModel.numJogadores.value!![0]
@@ -46,19 +48,21 @@ abstract class GameBaseFragment : Fragment() {
                         winner = v.gameModel.numJogadores.value!![i]
                     }
                 }
-
-                AlertDialog.Builder(requireContext())
-                    .setTitle(resources.getString(R.string.endGame))
-                    .setMessage(resources.getString(R.string.finalMessage)
-                        .replace("[X]", winner.id.toString())
-                        .replace("[Y]", winner.score.toString()))
-                    .setCancelable(false)
-                    .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
-                        requireActivity().finish()
-                    }
-                    .show()
             }
         }
+    }
+
+    val observePlayerWinner = Observer<Jogador> {
+        AlertDialog.Builder(requireContext())
+            .setTitle(resources.getString(R.string.endGame))
+            .setMessage(resources.getString(R.string.finalMessage)
+                .replace("[X]", it.id.toString())
+                .replace("[Y]", it.score.toString()))
+            .setCancelable(false)
+            .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                requireActivity().finish()
+            }
+            .show()
     }
 
     val observePlayerMoves = Observer<ArrayList<Posicoes>> {
