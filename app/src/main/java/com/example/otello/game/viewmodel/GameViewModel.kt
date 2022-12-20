@@ -1,20 +1,22 @@
 package com.example.otello.game.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.example.otello.game.model.EndGameStates
+import com.example.otello.game.model.*
 import com.example.otello.game.repository.GameRepository
-import com.example.otello.game.model.Jogador
-import com.example.otello.game.model.Posicoes
 
 class GameViewModel : ViewModel(){
     
-    val gameModel = GameRepository
+    private val gameModel = GameRepository
 
     fun initBoard() {
-        setupPlayers(2)
+        //Setup Players
+        for(i in 0 until 2) {
+            gameModel.numJogadores.value?.add(Jogador(i+1))
+        }
 
         //Inicia o Board com todas as posições vazias e guarda o num de colunas e linhas
-        gameModel.board.value = Array(64) { IntArray(8)}
+        gameModel.board.value = Array(8) { IntArray(8)}
         gameModel.boardDimensions.value = 8
 
         //Organize board when numJogadores = 2
@@ -26,12 +28,8 @@ class GameViewModel : ViewModel(){
         }
 
         alterarPontuacoes(gameModel.board.value!!)
-    }
 
-    fun setupPlayers(numPlayers: Int) {
-        for(i in 0 until numPlayers) {
-            gameModel.numJogadores.value?.add(Jogador(i+1))
-        }
+        gameModel.gameState.postValue(GameStates.Playing)
     }
 
     /**
@@ -128,31 +126,35 @@ class GameViewModel : ViewModel(){
      */
     fun changePieceMove(){
         val copyBoard = GameRepository.board.value!!
-        val currPlayerPiece = copyBoard[GameRepository.changePieceArray[0].linha][GameRepository.changePieceArray[0].coluna]
-        val otherPlayerPiece = copyBoard[GameRepository.changePieceArray[2].linha][GameRepository.changePieceArray[2].coluna]
+        val changePositionsArray = GameRepository.changePieceArray.value
 
-        //Altera as peças no board
-        copyBoard[GameRepository.changePieceArray[0].linha][GameRepository.changePieceArray[0].coluna] = otherPlayerPiece
-        copyBoard[GameRepository.changePieceArray[1].linha][GameRepository.changePieceArray[1].coluna] = otherPlayerPiece
-        copyBoard[GameRepository.changePieceArray[2].linha][GameRepository.changePieceArray[2].coluna] = currPlayerPiece
+        if(changePositionsArray != null) {
+            val currPlayerPiece = copyBoard[changePositionsArray[0].linha][changePositionsArray[0].coluna]
+            val otherPlayerPiece = copyBoard[changePositionsArray[2].linha][changePositionsArray[2].coluna]
 
-        //Altera a propriedade para o jogador não poder usar este special
-        GameRepository.playerTurn.value?.pieceChange = false
-        //Desliga o special no jogo
-        GameRepository.changePiecesMove.value = false
+            //Altera as peças no board
+            copyBoard[changePositionsArray[0].linha][changePositionsArray[0].coluna] = otherPlayerPiece
+            copyBoard[changePositionsArray[1].linha][changePositionsArray[1].coluna] = otherPlayerPiece
+            copyBoard[changePositionsArray[2].linha][changePositionsArray[2].coluna] = currPlayerPiece
 
-        //Alterar as pontuações dos jogadores
-        alterarPontuacoes(copyBoard)
+            //Altera a propriedade para o jogador não poder usar este special
+            GameRepository.playerTurn.value?.pieceChange = false
+            //Desliga o special no jogo
+            GameRepository.changePiecesMove.value = false
 
-        //Verificar se podemos continuar o jogo
-        estadoJogo(copyBoard)
+            //Alterar as pontuações dos jogadores
+            alterarPontuacoes(copyBoard)
 
-        //Altera o board
-        gameModel.board.value = copyBoard
+            //Verificar se podemos continuar o jogo
+            estadoJogo(copyBoard)
 
-        //Mudar de jogador
-        changePlayer()
+            //Altera o board
+            gameModel.board.value = copyBoard
 
+            //Mudar de jogador
+            changePlayer()
+
+        }
     }
 
     fun estadoJogo(board: Array<IntArray>){
@@ -163,7 +165,7 @@ class GameViewModel : ViewModel(){
                 }
             }
         }
-        gameModel.endGame.postValue(EndGameStates.FINISHED)
+        gameModel.gameState.postValue(GameStates.EndGame(gameModel.calculateWinner()))
     }
 
     /**
@@ -299,4 +301,89 @@ class GameViewModel : ViewModel(){
             gameModel.playPositions.value = k
         }
     }
+
+    /**
+     * This method calculates clicked position and checks if the piece is to add to the board
+     * or if it is to add to the array related to change piece special.
+     */
+    fun insertPieceOnBoard(position : Int) {
+        val linha = position / gameModel.boardDimensions.value!!
+        val coluna = position.rem(gameModel.boardDimensions.value!!)
+
+        if(gameModel.changePiecesMove.value!!){
+            addChangePiecePosition(Posicoes(linha, coluna))
+        }
+        else {
+            updateValue(linha, coluna)
+        }
+    }
+
+    private fun addChangePiecePosition(posicoes: Posicoes) {
+        val arrPosicoes = gameModel.changePieceArray.value
+        arrPosicoes?.add(posicoes)
+        gameModel.changePieceArray.postValue(arrPosicoes)
+    }
+
+    fun clearPieceChangeArray() {
+        gameModel.changePieceArray.value?.clear()
+    }
+
+    fun changeBombMoveState() {
+        //Só ativa o special da bomba caso outro special não esteja ativo
+        if(gameModel.changePiecesMove.value == false) {
+            gameModel.bombMove.value?.let {
+                gameModel.bombMove.value = !it
+            }
+        }
+    }
+
+    fun changePieceMoveState() {
+        if (gameModel.bombMove.value == false) {
+            gameModel.changePiecesMove.value?.let {
+                gameModel.changePiecesMove.value = !it
+            }
+        }
+    }
+
+    fun changeSeeMovesState() {
+        gameModel.seePossibleMoves.value?.let {
+            gameModel.seePossibleMoves.value = !it
+        }
+        gameModel.playPositions.postValue(gameModel.playPositions.value)
+    }
+
+    /**
+     * This method changes the player's moves flag to false to indicate that
+     * in the last turn, he didn't have any moves to make
+     */
+    fun setPlayerNoPossibleMoves() {
+        gameModel.playerTurn.value?.let {
+            it.hadMoves = false
+        }
+        gameModel.checkPlayerMoves()
+    }
+
+    /**
+     * Game getters
+     */
+
+    fun getBoardLiveData() : LiveData<Array<IntArray>> = gameModel.board
+
+    fun getBombActionStateLiveData() : LiveData<Boolean> = gameModel.bombMove
+
+    fun getPieceChangeActionStateLiveData() : LiveData<Boolean> = gameModel.changePiecesMove
+
+    fun getSeeMovesStateLiveData() : LiveData<Boolean> = gameModel.seePossibleMoves
+
+    fun getGameStateLiveData() : LiveData<GameStates> = gameModel.gameState
+
+    fun getPlayerTurnStateLiveData(): LiveData<Jogador> = gameModel.playerTurn
+
+    fun getCurrPlayerPlayPositionsLiveData(): LiveData<ArrayList<Posicoes>> = gameModel.playPositions
+
+    fun getScoresLiveData(): LiveData<ArrayList<Int>> = gameModel.currentScores
+
+    fun getChangePieceArrayLiveData(): LiveData<ArrayList<Posicoes>> = gameModel.changePieceArray
+
+
 }

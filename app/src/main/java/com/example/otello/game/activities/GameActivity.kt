@@ -4,18 +4,19 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import com.example.otello.R
 import com.example.otello.game.fragments.GameBaseFragment
 import com.example.otello.game.fragments.GameOffline
 import com.example.otello.game.fragments.GameOnline
 import com.example.otello.game.repository.GameRepository
+import com.example.otello.game.viewmodel.GameViewModel
 import com.example.otello.network.model.ConnType
 import com.example.otello.utils.ConstStrings
 import kotlinx.android.synthetic.main.activity_game.*
 
 class GameActivity : AppCompatActivity() {
-    lateinit var fragment : GameBaseFragment
-
+    private val viewModel by viewModels<GameViewModel>()
     private lateinit var connType : ConnType
     private var myPlayerId : Int = -1
     var gameMode : String = ""
@@ -34,9 +35,9 @@ class GameActivity : AppCompatActivity() {
 
         myPlayerId = intent.getIntExtra(ConstStrings.PLAYER_ID, -1)
 
-        when(intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)) {
-            ConstStrings.INTENT_GAME_LOCAL -> fragment = GameOffline()
-            ConstStrings.INTENT_GAME_ONLINE -> fragment = GameOnline()
+        val fragment = when(intent.getStringExtra(ConstStrings.INTENT_GAME_MODE)) {
+            ConstStrings.INTENT_GAME_ONLINE -> GameOnline()
+            else -> GameOffline.newInstance()
         }
 
         supportFragmentManager.beginTransaction().add(gameContainer.id, fragment).commit()
@@ -49,7 +50,13 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        fragment.menuClicked(item.itemId)
+        when(item.itemId) {
+            R.id.showMoves -> viewModel.changeSeeMovesState()
+
+            R.id.bombTrigger -> viewModel.changeBombMoveState()
+
+            R.id.pieceTrigger -> viewModel.changePieceMoveState()
+        }
         return super.onOptionsItemSelected(item)
     }
 

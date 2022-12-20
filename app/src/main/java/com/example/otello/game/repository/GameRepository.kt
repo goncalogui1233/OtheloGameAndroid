@@ -1,9 +1,7 @@
 package com.example.otello.game.repository
 
 import androidx.lifecycle.MutableLiveData
-import com.example.otello.game.model.EndGameStates
-import com.example.otello.game.model.Jogador
-import com.example.otello.game.model.Posicoes
+import com.example.otello.game.model.*
 
 object GameRepository {
 
@@ -16,11 +14,12 @@ object GameRepository {
     var playerWinner = MutableLiveData<Jogador>()
     var currentScores = MutableLiveData<ArrayList<Int>>()
 
-    var endGame = MutableLiveData<EndGameStates>()
+    var gameState = MutableLiveData<GameStates>()
     var bombMove = MutableLiveData(false)
     var changePiecesMove = MutableLiveData(false)
+    var seePossibleMoves = MutableLiveData(false)
 
-    var changePieceArray = arrayListOf<Posicoes>()
+    var changePieceArray = MutableLiveData(arrayListOf<Posicoes>())
 
     /**
      * Functions
@@ -421,7 +420,7 @@ object GameRepository {
             }
         }
 
-        endGame.postValue(EndGameStates.FINISHED)
+        gameState.postValue(GameStates.EndGame(calculateWinner()))
     }
 
     /**
@@ -436,16 +435,34 @@ object GameRepository {
         return false
     }
 
+    /**
+     * Method that calculates the winner of the game
+     */
+    fun calculateWinner() : Jogador? {
+        numJogadores.value?.let {
+            var winner = it[0]
+            for (i in 1 until it.size) {
+                if(it[i].score > winner.score){
+                    winner = it[i]
+                }
+            }
+
+            return@calculateWinner winner
+        }
+
+        return null
+    }
+
     fun resetGameModel() {
         numJogadores = MutableLiveData<ArrayList<Jogador>>(arrayListOf())
         playPositions = MutableLiveData<ArrayList<Posicoes>>()
         playerTurn = MutableLiveData<Jogador>()
-        changePieceArray = arrayListOf()
+        changePieceArray = MutableLiveData(arrayListOf())
         boardDimensions = MutableLiveData<Int>()
         bombMove = MutableLiveData(false)
         changePiecesMove = MutableLiveData(false)
         board = MutableLiveData<Array<IntArray>>()
-        endGame = MutableLiveData()
+        gameState = MutableLiveData()
         playerWinner = MutableLiveData()
     }
 

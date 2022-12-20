@@ -6,51 +6,42 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
-import com.example.otello.game.model.Posicoes
+import com.example.otello.utils.OtheloUtils
 import kotlinx.android.synthetic.main.fragment_game.view.*
 
 class GameOffline : GameBaseFragment() {
+
+    companion object {
+        fun newInstance(): GameOffline {
+            val args = Bundle()
+            val fragment = GameOffline()
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    override fun playerNumber(): Int = 2
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_game, container, false)
 
         v.initBoard()
-        v.gameModel.board.observe(viewLifecycleOwner, observeBoard)
-        v.gameModel.playerTurn.observe(viewLifecycleOwner, observePlayerTurn)
-        v.gameModel.playPositions.observe(viewLifecycleOwner, observePlayerMoves)
-        v.gameModel.endGame.observe(viewLifecycleOwner, observeGameStatus)
-        v.gameModel.currentScores.observe(viewLifecycleOwner, observeScoreChange)
-        v.gameModel.playerWinner.observe(viewLifecycleOwner, observePlayerWinner)
 
-        adapter = GridAdapter(requireContext(), v.gameModel.board.value!!, v.gameModel.boardDimensions.value!!)
-        //boardGrid.numColumns = v.gameModel.boardDimensions.value!!
-        view.boardGrid.numColumns = v.gameModel.boardDimensions.value!!
+        adapter = GridAdapter(requireContext(), playerNumber())
+        view.boardGrid.numColumns = OtheloUtils.getBoardDimensionByPlayerNumber(playerNumber())
         view.boardGrid.adapter = adapter
         view.boardGrid.setOnItemClickListener { _, _, i, _ ->
-            val linha = i / v.gameModel.boardDimensions.value!!
-            val coluna = i.rem(v.gameModel.boardDimensions.value!!)
-
-            if(v.gameModel.changePiecesMove.value!!){
-                v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
-                if(v.gameModel.changePieceArray.size == 3){
-                    v.changePieceMove()
-                    v.gameModel.changePieceArray.clear()
-                }
-            }
-            else {
-                v.updateValue(linha, coluna)
-            }
+            v.insertPieceOnBoard(i)
         }
-
-        //Decidir quem joga primeiro
-        sortearJogador()
 
         view.passTurnBtn.setOnClickListener {
             v.changePlayer()
         }
 
+        //Decidir quem joga primeiro
+        sortearJogador()
+
         return view
     }
-
 
 }

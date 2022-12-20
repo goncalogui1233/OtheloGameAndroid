@@ -21,7 +21,7 @@ class GameOnlineViewModel : ViewModel() {
     val gameModel = GameRepository
 
     fun initBoard() {
-        gameModel.endGame.postValue(EndGameStates.PLAYING)
+        //gameModel.endGame.postValue(EndGameStates.PLAYING)
 
         //Organize board when numJogadores = 2
         if (gameModel.numJogadores.value?.size == 2) {
@@ -136,7 +136,7 @@ class GameOnlineViewModel : ViewModel() {
      * Position 2 -> Piece from the other player
      */
     fun changePieceMove() {
-        val copyBoard = gameModel.board.value!!
+        /*val copyBoard = gameModel.board.value!!
         val currPlayerPiece = copyBoard[gameModel.changePieceArray[0].linha][gameModel.changePieceArray[0].coluna]
         val otherPlayerPiece = copyBoard[gameModel.changePieceArray[2].linha][gameModel.changePieceArray[2].coluna]
 
@@ -194,7 +194,7 @@ class GameOnlineViewModel : ViewModel() {
                     NetworkUtils.sendInfo(i.gameSocket!!, jsonData.toString())
                 }
             }
-        }
+        }*/
     }
 
     /**
@@ -208,7 +208,7 @@ class GameOnlineViewModel : ViewModel() {
                 }
             }
         }
-        gameModel.endGame.postValue(EndGameStates.FINISHED)
+        //gameModel.endGame.postValue(EndGameStates.FINISHED)
     }
 
     /**
@@ -516,8 +516,8 @@ class GameOnlineViewModel : ViewModel() {
                             val jsonData = JSONObject()
 
                             if(gameModel.changePiecesMove.value!!) {
-                                gameModel.changePieceArray.add(Posicoes(linha, coluna))
-                                if(gameModel.changePieceArray.size == 3) {
+                                gameModel.changePieceArray.value?.add(Posicoes(linha, coluna))
+                                if(gameModel.changePieceArray.value?.size == 3) {
                                     changePieceMove()
                                 }
                             }
@@ -549,7 +549,7 @@ class GameOnlineViewModel : ViewModel() {
                         }
 
                         ConstStrings.GAME_END_ABRUPTLY -> {
-                            gameModel.endGame.postValue(EndGameStates.ABRUPTLY)
+                            //gameModel.endGame.postValue(EndGameStates.ABRUPTLY)
                             return@thread
                         }
                     }

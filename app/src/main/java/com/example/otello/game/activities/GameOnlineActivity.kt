@@ -11,7 +11,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.otello.R
 import com.example.otello.game.adapter.GridAdapter
-import com.example.otello.game.model.EndGameStates
 import com.example.otello.game.repository.GameRepository
 import com.example.otello.game.model.Jogador
 import com.example.otello.game.model.Posicoes
@@ -55,7 +54,7 @@ class GameOnlineActivity : AppCompatActivity() {
             v.gameModel.board.observe(this, observeBoard)
             v.gameModel.playerTurn.observe(this, observePlayerTurn)
             v.gameModel.playPositions.observe(this, observePlayerMoves)
-            v.gameModel.endGame.observe(this, observeEndGame)
+            //v.gameModel.endGame.observe(this, observeEndGame)
             v.gameModel.playerWinner.observe(this, observeWinner)
 
             //Setting the Adapter, Dimensions and ClickListener for Grid
@@ -102,11 +101,7 @@ class GameOnlineActivity : AppCompatActivity() {
                 val coluna = i.rem(v.gameModel.boardDimensions.value!!)
                 if (v.gameModel.playerTurn.value!!.id == myPlayerId) {
                     if (v.gameModel.changePiecesMove.value!!) {
-                        v.gameModel.changePieceArray.add(Posicoes(linha, coluna))
-                        if (v.gameModel.changePieceArray.size == 3) {
-                            v.changePieceMove()
-                            v.gameModel.changePieceArray.clear()
-                        }
+                        v.gameModel.changePieceArray.value?.add(Posicoes(linha, coluna))
                     } else {
                         v.updateValue(linha, coluna)
                     }
@@ -172,11 +167,11 @@ class GameOnlineActivity : AppCompatActivity() {
         }
     }
 
-    private val observeEndGame = Observer<EndGameStates> {
+   /* private val observeEndGame = Observer<EndGameStates> {
         when (it) {
             EndGameStates.FINISHED, EndGameStates.ABRUPTLY -> v.calculateWinner()
         }
-    }
+    }*/
 
     private val observeWinner = Observer<Jogador> {
         winnerObsTriggered = true
@@ -192,7 +187,7 @@ class GameOnlineActivity : AppCompatActivity() {
             }
         }
 
-        when (v.gameModel.endGame.value!!) {
+        /*when (v.gameModel.endGame.value!!) {
             EndGameStates.FINISHED -> {
                 AlertDialog.Builder(this)
                         .setTitle(resources.getString(R.string.endGame))
@@ -219,7 +214,7 @@ class GameOnlineActivity : AppCompatActivity() {
                         }
                         .show()
             }
-        }
+        }*/
     }
 
     private val observePlayerMoves = Observer<ArrayList<Posicoes>> {
@@ -595,7 +590,7 @@ class GameOnlineActivity : AppCompatActivity() {
                                     Snackbar.LENGTH_LONG).show()
                         } else {
                             v.gameModel.changePiecesMove.value = false
-                            v.gameModel.changePieceArray.clear()
+                            v.gameModel.changePieceArray.value?.clear()
                             Snackbar.make(gameLayout,
                                     resources.getString(R.string.changePieceSpecial) + " " + resources.getString(R.string.deactivated),
                                     Snackbar.LENGTH_LONG).show()

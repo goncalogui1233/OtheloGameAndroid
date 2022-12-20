@@ -40,5 +40,14 @@ object OtheloUtils {
         return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
     }
 
+    fun getBoardDimensionByPlayerNumber(playerNumber: Int): Int {
+        return if (playerNumber == 3) {
+            10
+        }
+        else {
+            8
+        }
+    }
+
 
 }
